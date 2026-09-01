@@ -91,7 +91,15 @@ The host calls its model and reports bounded outcome metadata through `runtime.o
 
 ### Hermes integration
 
-The repository root is a reference Hermes directory plugin: `plugin.yaml` and the root `__init__.py` are both required. Installer commands vary by Hermes version, so use the plugin installation method documented for your deployed Hermes release. Compatibility is verified against the contract documented in [Compatibility](docs/COMPATIBILITY.md).
+Install through Hermes' native plugin manager. It keeps the plugin disabled until the runtime contract passes:
+
+```bash
+hermes plugins install AlekseiUL/humanlike-agent-kit --no-enable
+hermes plugins doctor humanlike-agent-kit --ci
+hermes plugins enable humanlike-agent-kit --no-allow-tool-override
+```
+
+Start a new Hermes session after enabling it. See [Hermes installation](docs/HERMES_INSTALL.md) for pinned installs, health checks, rollback, and removal. Compatibility is documented in [Compatibility](docs/COMPATIBILITY.md).
 
 Memory is disabled by default. Enabling it requires `memory_enabled = true`, `acknowledge_host_context_persistence = true`, and a relative `state_path`. The runtime cannot delete copies already retained by a host or model provider.
 
@@ -159,7 +167,15 @@ humanlike doctor --config examples/hermes-humanlike/humanlike.toml
 
 ### Интеграция и память
 
-Корень репозитория оформлен как эталонный directory plugin для Hermes. Нужны оба файла: `plugin.yaml` и корневой `__init__.py`. Точную команду установки берите из документации вашей версии Hermes.
+Устанавливайте плагин через штатный менеджер Hermes: сначала выключенным, затем проверка и включение.
+
+```bash
+hermes plugins install AlekseiUL/humanlike-agent-kit --no-enable
+hermes plugins doctor humanlike-agent-kit --ci
+hermes plugins enable humanlike-agent-kit --no-allow-tool-override
+```
+
+После включения начните новую сессию Hermes. Закрепление версии по commit SHA, проверка, rollback и удаление описаны в [инструкции по установке](docs/HERMES_INSTALL.md).
 
 Память по умолчанию выключена. Для включения нужны `memory_enabled = true`, `acknowledge_host_context_persistence = true` и относительный `state_path`. Это осознанное ограничение: библиотека не управляет копиями данных в основной системе или у провайдера модели.
 
@@ -168,6 +184,7 @@ humanlike doctor --config examples/hermes-humanlike/humanlike.toml
 - [Architecture / Архитектура](docs/ARCHITECTURE.md)
 - [Privacy / Приватность](docs/PRIVACY.md)
 - [Compatibility / Совместимость](docs/COMPATIBILITY.md)
+- [Hermes installation / Установка в Hermes](docs/HERMES_INSTALL.md)
 - [Threat model / Модель угроз](docs/THREAT_MODEL.md)
 - [Security policy](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)

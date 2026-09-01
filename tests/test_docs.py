@@ -21,6 +21,7 @@ REQUIRED_DOCUMENTS = (
     "docs/ARCHITECTURE.md",
     "docs/PRIVACY.md",
     "docs/COMPATIBILITY.md",
+    "docs/HERMES_INSTALL.md",
     "docs/THREAT_MODEL.md",
 )
 
@@ -100,6 +101,30 @@ def test_documented_platform_and_hermes_compatibility_are_explicit() -> None:
     ).read_text(encoding="utf-8")
     assert "unsupported first-person/publication" not in design
     assert "точное полное утверждение о биологической человечности" in design
+
+
+def test_native_hermes_install_uses_disabled_first_runtime_validation() -> None:
+    install = (REPOSITORY_ROOT / "docs" / "HERMES_INSTALL.md").read_text(
+        encoding="utf-8"
+    )
+    readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
+
+    install_commands = (
+        "hermes plugins install AlekseiUL/humanlike-agent-kit --no-enable",
+        "hermes plugins doctor humanlike-agent-kit --ci",
+        "hermes plugins enable humanlike-agent-kit --no-allow-tool-override",
+    )
+    lifecycle_commands = (
+        "hermes plugins disable humanlike-agent-kit",
+        "hermes plugins remove humanlike-agent-kit",
+    )
+    for command in (*install_commands, *lifecycle_commands):
+        assert command in install
+    for command in install_commands:
+        assert command in readme
+    assert "--ref <40-character-commit-sha>" in install
+    assert "humanlike install" not in install
+    assert "humanlike uninstall" not in install
 
 
 def test_ci_uses_the_locked_build_toolchain_and_complete_history() -> None:

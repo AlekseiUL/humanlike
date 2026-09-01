@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 ## [Unreleased]
 
+### Added
+
+- Added a bilingual native Hermes installation path with disabled-first validation, commit pinning, health checks, rollback, and removal.
+
 ## [0.1.1] - 2026-09-01
 
 ### Changed
