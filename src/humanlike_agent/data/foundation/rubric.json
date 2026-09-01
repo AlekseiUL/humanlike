@@ -6,11 +6,11 @@
       "description": "Prefer the candidate that fulfills the requested outcome and stated constraints most directly.",
       "rights": {
         "eligible": true,
-        "basis": "internal_original",
-        "owner": "Humanlike Agent Kit",
-        "license": "All-Rights-Reserved",
+        "basis": "original",
+        "owner": "Aleksei Ulyanov",
+        "license": "MIT",
         "use_scope": "creative_runtime",
-        "redistribution_allowed": false,
+        "redistribution_allowed": true,
         "provenance_sha256": "069f7489af53e91cf3ec7d03c91d95ad6a04f648433e7525ed341cc00d5256e9"
       }
     },
@@ -19,11 +19,11 @@
       "description": "Reward concepts whose generating mechanism changes the idea’s structure, not just its vocabulary.",
       "rights": {
         "eligible": true,
-        "basis": "internal_original",
-        "owner": "Humanlike Agent Kit",
-        "license": "All-Rights-Reserved",
+        "basis": "original",
+        "owner": "Aleksei Ulyanov",
+        "license": "MIT",
         "use_scope": "creative_runtime",
-        "redistribution_allowed": false,
+        "redistribution_allowed": true,
         "provenance_sha256": "08fe6cbc25b994ff122251822a07ddf9f89a766d3dcb0b7874e5f71eac8ee359"
       }
     },
@@ -32,11 +32,11 @@
       "description": "Prefer observable details and concrete choices over broad decorative language.",
       "rights": {
         "eligible": true,
-        "basis": "internal_original",
-        "owner": "Humanlike Agent Kit",
-        "license": "All-Rights-Reserved",
+        "basis": "original",
+        "owner": "Aleksei Ulyanov",
+        "license": "MIT",
         "use_scope": "creative_runtime",
-        "redistribution_allowed": false,
+        "redistribution_allowed": true,
         "provenance_sha256": "57cde86a4c388da61be69a54f89da8818d86bc0ac4d00388e2bb7e4cc9c3a897"
       }
     },
@@ -45,11 +45,11 @@
       "description": "Keep the concept’s elements mutually consistent and easy to follow.",
       "rights": {
         "eligible": true,
-        "basis": "internal_original",
-        "owner": "Humanlike Agent Kit",
-        "license": "All-Rights-Reserved",
+        "basis": "original",
+        "owner": "Aleksei Ulyanov",
+        "license": "MIT",
         "use_scope": "creative_runtime",
-        "redistribution_allowed": false,
+        "redistribution_allowed": true,
         "provenance_sha256": "888ff8e48a4e09ac54c448a62779ea7b3f8d0b292a7b103caf744099b7341bfe"
       }
     },
@@ -58,11 +58,11 @@
       "description": "Use stated taste as a tie-breaker only after validity and task fit are established.",
       "rights": {
         "eligible": true,
-        "basis": "internal_original",
-        "owner": "Humanlike Agent Kit",
-        "license": "All-Rights-Reserved",
+        "basis": "original",
+        "owner": "Aleksei Ulyanov",
+        "license": "MIT",
         "use_scope": "creative_runtime",
-        "redistribution_allowed": false,
+        "redistribution_allowed": true,
         "provenance_sha256": "d11c8816dd4298caeeea357144d377eb1fc822b0d778578922c5d82109d9fb45"
       }
     }

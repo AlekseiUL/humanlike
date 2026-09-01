@@ -8,13 +8,34 @@ name = "humanlike-agent-kit"
 dynamic = ["version"]
 description = "Provider-neutral behavioral runtime for humanlike AI agents."
 readme = "README.md"
-license = "LicenseRef-Proprietary"
+license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = []
+authors = [
+    { name = "Aleksei Ulyanov" },
+]
+keywords = ["ai-agents", "behavior", "hermes-agent", "privacy", "python"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 
 [project.scripts]
 humanlike = "humanlike_agent.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/AlekseiUL/humanlike-agent-kit"
+Repository = "https://github.com/AlekseiUL/humanlike-agent-kit"
+Issues = "https://github.com/AlekseiUL/humanlike-agent-kit/issues"
+Documentation = "https://github.com/AlekseiUL/humanlike-agent-kit#readme"
 
 [project.optional-dependencies]
 dev = [

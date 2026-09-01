@@ -1,6 +1,6 @@
 # Threat Model
 
-This threat model covers Humanlike Agent Kit private beta `0.1.0`: the provider-neutral core, local profiles and creative packs, optional SQLite memory, offline conformance runner, and reference Hermes adapter.
+This threat model covers Humanlike Agent Kit beta `0.1.x`: the provider-neutral core, local profiles and creative packs, optional SQLite memory, offline conformance runner, and reference Hermes adapter.
 
 ## Security goals
 
@@ -60,7 +60,7 @@ The operating-system account, Python interpreter, installed plugin source, and h
 | Host lifecycle mismatch | Turn/session matching, interrupted-turn retirement, idempotent receipts, finalization cleanup | A host that never finalizes can retain bounded metadata until eviction/process exit |
 | False identity claim in output | Mandatory truth context and one narrow exact-match correction | Paraphrases and other unsafe content are not comprehensively filtered |
 | Corrupt or hostile eval suite | Rooted `.jsonl` loading, strict JSON, schema/size/count bounds, temporary state | Passing fixtures measure declared checks, not general model quality |
-| Dependency or artifact substitution | No third-party runtime dependencies, private distribution guidance | Python, build backend, dev tools, repository access, and release channel remain supply-chain risks |
+| Dependency or artifact substitution | No third-party runtime dependencies, locked CI tooling, installed-wheel smoke, and reproducible source archives | Python, build backend, dev tools, repository access, and release channel remain supply-chain risks |
 
 ## Abuse cases
 

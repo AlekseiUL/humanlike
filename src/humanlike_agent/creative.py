@@ -19,7 +19,7 @@ from .models import Mode, RouteDecision
 MAX_CREATIVE_REQUEST_CHARS: Final = 64 * 1024
 MAX_CREATIVE_CONTEXT_CHARS: Final = 16 * 1024
 FOUNDATION_MANIFEST_SHA256: Final = (
-    "f82d09a51a10cd0d9c59cc91cbdef00c6e25cb042b0a51b58de635204853e7e4"
+    "ed74e0dbc07b0f3dc665f3d5e801bc3c30ca1d477ae513f9b5cebba16e2d37d2"
 )
 _MAX_ID: Final = 128
 _MAX_APPROACH: Final = 512

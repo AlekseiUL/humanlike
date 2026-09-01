@@ -129,6 +129,6 @@ User turn
 
 ## Неблокирующие решения
 
-- Лицензия первой закрытой версии: all rights reserved; open-source лицензию выбрать отдельно.
+- Историческое решение для первой закрытой версии: all rights reserved. Начиная с `0.1.1`, репозиторий и foundation pack распространяются по MIT.
 - Основной формат config: TOML/JSON на стандартной библиотеке; PERSONA.md и Character Card adapters развивать совместимо, но без объявления нового стандарта.
 - Python: 3.11+, без runtime dependencies; текущая локальная проверка также на Python 3.14.

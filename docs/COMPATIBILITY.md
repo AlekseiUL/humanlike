@@ -1,6 +1,6 @@
 # Compatibility
 
-This document describes the verified code contract for private beta `0.1.0`. It is deliberately narrower than what may happen to work in an individual environment.
+This document describes the verified code contract for beta `0.1.x`. It is deliberately narrower than what may happen to work in an individual environment.
 
 ## Runtime baseline
 
@@ -17,7 +17,7 @@ This document describes the verified code contract for private beta `0.1.0`. It 
 
 ### Linux and macOS
 
-These are the intended private-beta environments for the complete runtime, hardened profile loader, Hermes adapter, offline suite, and optional SQLite memory backend. Deploy on a local filesystem owned by the service account.
+These are the intended beta environments for the complete runtime, hardened profile loader, Hermes adapter, offline suite, and optional SQLite memory backend. Deploy on a local filesystem owned by the service account.
 
 An intended environment is not automatically a certified platform. Run the full tests, `humanlike doctor`, and `humanlike eval` on the exact Python and filesystem used in deployment.
 
@@ -72,7 +72,7 @@ All commands write one JSON object to standard output.
 | `humanlike doctor` | `0` | Not applicable | `2` |
 | `humanlike eval` | `0` | `1` | `2` |
 
-Error responses use fixed labels and do not echo rejected text or paths. JSON field order is stable, but private beta does not promise that every field will remain unchanged in later versions.
+Error responses use fixed labels and do not echo rejected text or paths. JSON field order is stable, but the beta line does not promise that every field will remain unchanged in later versions.
 
 ## Profile compatibility
 
@@ -89,9 +89,9 @@ Error responses use fixed labels and do not echo rejected text or paths. JSON fi
 
 Unknown fields are rejected. Persona and state paths must be relative and stay inside the profile root. Context limits are validated by `RuntimeConfig`; deep context cannot be smaller than normal context.
 
-## Upgrade policy during private beta
+## Upgrade policy during beta
 
-- Treat every minor private-beta change as potentially incompatible.
+- Treat every minor beta change as potentially incompatible.
 - Keep profile, pack, and fixture changes in the same reviewed commit as the runtime change they require.
 - Run unit tests, lint, doctor, offline conformance, package build, and an isolated install before deployment.
 - Roll out to a non-production profile first.

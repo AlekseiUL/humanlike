@@ -655,15 +655,15 @@ def test_repository_foundation_pack_is_generic_original_and_rights_eligible() ->
     assert "punchline" in anti_text and "explain" in anti_text
     assert all(record.rights.eligible for record in foundation.rubric + foundation.anti_patterns)
     assert all(
-        not record.rights.redistribution_allowed
+        record.rights.redistribution_allowed
         for record in foundation.rubric + foundation.anti_patterns
     )
     assert all(
-        record.rights.basis == "internal_original" and record.rights.owner == "Humanlike Agent Kit"
+        record.rights.basis == "original" and record.rights.owner == "Aleksei Ulyanov"
         for record in foundation.rubric + foundation.anti_patterns
     )
     assert all(
-        record.rights.license == "All-Rights-Reserved"
+        record.rights.license == "MIT"
         for record in foundation.rubric + foundation.anti_patterns
     )
     assert len(creative_module.FOUNDATION_MANIFEST_SHA256) == 64

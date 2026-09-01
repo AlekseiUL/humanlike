@@ -184,7 +184,9 @@ def test_sdist_is_reproducible_owner_neutral_and_complete(tmp_path: Path) -> Non
     assert all(member.uname == member.gname == "" for member in members)
     assert all(member.mtime == epoch for member in members)
     required_suffixes = {
+        "/ACKNOWLEDGEMENTS.md",
         "/CHANGELOG.md",
+        "/CONTRIBUTING.md",
         "/README.md",
         "/SECURITY.md",
         "/__init__.py",

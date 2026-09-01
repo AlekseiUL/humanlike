@@ -2,13 +2,23 @@
 
 All notable changes to Humanlike Agent Kit are documented in this file.
 
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This private beta does not yet promise semantic-versioning stability.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The `0.1.x` beta line does not yet promise API stability.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-01
+
 ### Changed
 
-- Continued private-beta hardening and release validation.
+- Relicensed the repository and bundled foundation pack under the MIT License.
+- Reworked the README into an English/Russian product guide with verified quickstart commands, project boundaries, author links, and attribution links.
+- Added contributor guidance, third-party acknowledgements, public security-reporting guidance, and complete package metadata.
+- Replaced stale private-beta and proprietary-distribution wording throughout current documentation.
+
+### Fixed
+
+- Synchronized foundation-pack rights declarations and manifest hashes with the repository license.
+- Added regression checks that prevent proprietary metadata from reappearing in an MIT release.
 
 ## [0.1.0] - 2026-09-01
 
@@ -25,7 +35,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Thi
 - Reference Hermes directory plugin for four lifecycle hooks.
 - Stable JSON CLI commands: `route`, `doctor`, and `eval`.
 - Offline conformance reports for route, social move, privacy, context budget, policy, disclosure, stance, memory, and drift.
-- Private-beta architecture, privacy, compatibility, security, and threat-model documentation.
+- Architecture, privacy, compatibility, security, and threat-model documentation.
 
 ### Security
 

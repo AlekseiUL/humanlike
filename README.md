@@ -1,127 +1,76 @@
 # Humanlike Agent Kit
 
-Humanlike Agent Kit is a deterministic behavioral planning layer for conversational AI agents. It classifies each turn, assembles bounded guidance, and returns privacy-aware metadata while leaving model calls, tools, transport, and transcript storage to the host.
+**Deterministic, provider-neutral behavior controls for conversational AI agents.**
 
-> **Status: private beta (`0.1.0`).** The API, configuration schema, and integration behavior may change before a public release. Access to this repository does not grant an open-source license.
+[English](#english) · [Русский](#русский) · [Documentation](#documentation) · [License](#license)
 
-The core package does **not** call an LLM and does **not** access the network. It can be evaluated completely offline.
+> **Status: open-source beta (`0.1.1`).** The public API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
 
-## What it provides
+```mermaid
+flowchart LR
+    A[User turn] --> B[Deterministic router]
+    B --> C[Bounded behavior plan]
+    C --> D[Host prompt and model]
+    D --> E[Metadata receipt]
+    E --> F[Optional host-approved memory]
+```
+
+## English
+
+Humanlike Agent Kit is a behavioral planning layer for AI agents. It classifies each turn, selects a social and cognitive mode, assembles bounded guidance, and returns privacy-aware metadata. The host remains responsible for model calls, tools, transport, output delivery, transcript retention, and policy enforcement.
+
+### What it provides
 
 - Deterministic RU/EN routing across cognitive modes and social moves.
-- Bounded context plans with mandatory truth and privacy tails.
-- Persona anchoring, discourse repetition control, calibrated stance, and drift signals.
-- Optional evidence-aware memory behind an explicit host-controlled write contract.
-- Deterministic offline conformance checks across route, social move, privacy, context budget, policy, disclosure, stance, memory, and drift.
-- A reference Hermes directory plugin with four hooks: `pre_llm_call`, `transform_llm_output`, `post_llm_call`, and `on_session_finalize`.
+- Bounded context plans with mandatory truth and privacy guidance.
+- Persona anchoring, repetition control, calibrated stance, and drift signals.
+- Optional evidence-aware SQLite memory behind explicit host-controlled consent.
+- A 40-case offline conformance suite for routing, privacy, context budgets, policy, disclosure, stance, memory, and drift.
+- A reference Hermes directory plugin with `pre_llm_call`, `transform_llm_output`, `post_llm_call`, and `on_session_finalize` hooks.
+- Stable JSON CLI commands: `route`, `doctor`, and `eval`.
 
-Humanlike Agent Kit is not a model, chatbot UI, autonomous agent host, network service, or general-purpose model safety system.
+### What it is not
 
-## 10-minute quickstart
+Humanlike Agent Kit is not a model, chatbot UI, autonomous agent host, network service, or complete model-safety system. It does not make an AI biologically human, hide AI identity, or control data already copied into a host or provider transcript.
 
-### 1. Install from the repository
+### Quickstart
 
-Requirements: Python 3.11 or newer and access to this private repository.
-
-On macOS or Linux:
+Requirements: Python 3.11 or newer. The hardened profile loader and SQLite memory backend require a local POSIX filesystem; native Windows is not supported for those components in `0.1.x`.
 
 ```bash
+git clone https://github.com/AlekseiUL/humanlike-agent-kit.git
+cd humanlike-agent-kit
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -e .
+python -m pip install .
 ```
 
-On Windows, the routing API can be explored from PowerShell:
-
-```powershell
-py -3.11 -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install -e .
-```
-
-Native Windows is not a supported target for the hardened profile loader or SQLite memory backend in `0.1.0`; see [Compatibility](docs/COMPATIBILITY.md).
-
-### 2. Route one turn
+Run the first deterministic route:
 
 ```bash
 humanlike route --text "Rewrite this paragraph in a neutral tone." --locale en
 ```
 
-The command prints one stable JSON object. The `route` object includes the selected mode, social move, response budget, candidate count, constraints, and reason codes. Use `python -m humanlike_agent` instead of `humanlike` if the virtual environment's script directory is not on `PATH`.
-
-### 3. Run the offline conformance suite
+Run the bundled offline conformance suite:
 
 ```bash
 humanlike eval
 ```
 
-The installed package includes the official 40-case RU/EN suite. Pass `--cases-dir PATH` to evaluate a reviewed custom suite instead. The report contains per-case results, per-dimension coverage, and a summary. Exit status `0` means every case and every required dimension passed; `1` means a conformance expectation failed; `2` means the suite or CLI input was invalid.
-
-### 4. Validate the Hermes reference profile
+Validate the included Hermes reference profile:
 
 ```bash
 humanlike doctor --config examples/hermes-humanlike/humanlike.toml
 ```
 
-A valid profile returns JSON with `"ok":true`. The example keeps durable memory disabled.
+Each command prints one JSON object. Exit status `0` means success; validation errors use exit status `2`; `humanlike eval` uses exit status `1` when a declared expectation fails.
 
-### 5. Smoke-test the Hermes reference adapter
-
-The following is a host-independent contract check. It loads the same profile that the directory plugin uses and confirms the four callbacks without calling a model or network service.
+### Python API
 
 ```python
 from pathlib import Path
 
-from humanlike_agent.adapters.hermes import load_adapter
-
-
-class ReferenceHost:
-    def __init__(self) -> None:
-        self.hooks = {}
-
-    def register_hook(self, name, callback) -> None:
-        self.hooks[name] = callback
-
-
-profile = Path("examples/hermes-humanlike").resolve()
-adapter = load_adapter(profile / "humanlike.toml", allowed_root=profile)
-host = ReferenceHost()
-adapter.register(host)
-
-result = host.hooks["pre_llm_call"](
-    session_id="quickstart-session",
-    turn_id="quickstart-turn",
-    user_message="Help me plan a careful reply.",
-    locale="en",
-)
-
-assert tuple(host.hooks) == (
-    "pre_llm_call",
-    "transform_llm_output",
-    "post_llm_call",
-    "on_session_finalize",
-)
-assert result and result["context"]
-print("Hermes reference adapter OK")
-```
-
-For a Hermes directory-plugin installation, point the host's supported plugin installer or loader at the **repository root**. The root-level `plugin.yaml` and `__init__.py` are required; installing only `src/` is not sufficient. Installer syntax varies by Hermes distribution, so confirm the command with the version deployed in your environment.
-
-## Core API
-
-Hosts can use the runtime without Hermes:
-
-```python
-from pathlib import Path
-
-from humanlike_agent import (
-    HumanlikeRuntime,
-    Persona,
-    RuntimeConfig,
-    SessionRef,
-    TurnInput,
-    TurnOutcome,
-)
+from humanlike_agent import HumanlikeRuntime, Persona, RuntimeConfig, TurnInput
 
 profile = Path("examples/hermes-humanlike").resolve()
 persona = Persona.load(profile / "SOUL.md", allowed_root=profile)
@@ -135,52 +84,105 @@ plan = runtime.prepare(
         locale="en",
     )
 )
-context_for_host_prompt = plan.render_context()
-
-# The host calls its model, then reports bounded metadata back.
-receipt = runtime.observe(
-    TurnOutcome(
-        turn_id="turn-1",
-        session_id="session-1",
-        success=True,
-        response_chars=240,
-    )
-)
-runtime.finalize(SessionRef(session_id="session-1"))
+print(plan.render_context())
 ```
 
-`context_for_host_prompt` is guidance for the host's prompt assembly. The host remains responsible for the model request, tool execution, output delivery, transcript retention, and enforcement outside this runtime.
+The host calls its model and reports bounded outcome metadata through `runtime.observe(...)`. See [Architecture](docs/ARCHITECTURE.md) for the full lifecycle and trust boundary.
 
-## Hermes profile configuration
+### Hermes integration
 
-The reference profile is split between:
+The repository root is a reference Hermes directory plugin: `plugin.yaml` and the root `__init__.py` are both required. Installer commands vary by Hermes version, so use the plugin installation method documented for your deployed Hermes release. Compatibility is verified against the contract documented in [Compatibility](docs/COMPATIBILITY.md).
 
-- `examples/hermes-humanlike/humanlike.toml` — schema, profile identifier, persona path, memory choice, and context budgets.
-- `examples/hermes-humanlike/SOUL.md` — bounded identity, voice, values, and hard boundaries.
+Memory is disabled by default. Enabling it requires `memory_enabled = true`, `acknowledge_host_context_persistence = true`, and a relative `state_path`. The runtime cannot delete copies already retained by a host or model provider.
 
-Keep `persona_path` and any `state_path` relative to the profile directory. Symlinks, path traversal, unsafe ownership, and group/other-writable profile files are rejected by the hardened loader.
-
-Memory is off by default. Enabling it requires both `memory_enabled = true` and `acknowledge_host_context_persistence = true`, plus a relative `state_path`. This acknowledgement matters because the runtime cannot erase context or messages already copied into a host transcript. The reference Hermes adapter also does not infer durable memory records from message text; a richer host integration must supply validated records explicitly through the core API.
-
-## Development
+### Development
 
 ```bash
-python -m pip install -e ".[dev]"
-pytest -q
-ruff check .
+uv sync --locked --all-extras
+uv run pytest -q
+uv run ruff check .
+uv run python scripts/privacy_gate.py .
 ```
 
-The runtime package has no third-party runtime dependencies. Test, lint, and build tools are development-only extras.
+The installed runtime has no third-party Python dependencies. Development, build, CI, and integration references are documented in [Acknowledgements](ACKNOWLEDGEMENTS.md).
+
+---
+
+## Русский
+
+Humanlike Agent Kit — это детерминированный поведенческий слой для ИИ-агентов. Он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
+
+### Что умеет
+
+- Маршрутизирует русские и английские запросы без вызова модели.
+- Формирует ограниченный план ответа с правилами честности и приватности.
+- Удерживает персону, снижает повторы, отслеживает позицию и поведенческий дрейф.
+- Поддерживает опциональную SQLite-память только с явным согласием основной системы.
+- Запускает офлайн-проверку из 40 кейсов.
+- Даёт эталонный адаптер для Hermes и JSON CLI-команды `route`, `doctor`, `eval`.
+
+### Чего не делает
+
+Это не модель, не интерфейс чата, не автономный агент и не универсальный фильтр безопасности. Kit не скрывает природу ИИ и не может удалить данные, которые уже сохранил хост или провайдер модели.
+
+### Быстрый старт
+
+Нужен Python 3.11 или новее. Для защищённой загрузки профиля и SQLite-памяти требуется локальная POSIX-файловая система; нативный Windows для этих компонентов в ветке `0.1.x` не поддерживается.
+
+```bash
+git clone https://github.com/AlekseiUL/humanlike-agent-kit.git
+cd humanlike-agent-kit
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install .
+```
+
+Проверка одного запроса:
+
+```bash
+humanlike route --text "Перепиши этот абзац нейтрально." --locale ru
+```
+
+Офлайн-тесты поведения:
+
+```bash
+humanlike eval
+```
+
+Проверка примера профиля Hermes:
+
+```bash
+humanlike doctor --config examples/hermes-humanlike/humanlike.toml
+```
+
+Каждая команда печатает один JSON-объект. Код завершения `0` означает успех, `2` — ошибку входных данных или конфигурации, а `humanlike eval` возвращает `1`, если хотя бы одна заявленная проверка не пройдена.
+
+### Интеграция и память
+
+Корень репозитория оформлен как эталонный directory plugin для Hermes. Нужны оба файла: `plugin.yaml` и корневой `__init__.py`. Точную команду установки берите из документации вашей версии Hermes.
+
+Память по умолчанию выключена. Для включения нужны `memory_enabled = true`, `acknowledge_host_context_persistence = true` и относительный `state_path`. Это осознанное ограничение: библиотека не управляет копиями данных в основной системе или у провайдера модели.
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Privacy](docs/PRIVACY.md)
-- [Compatibility](docs/COMPATIBILITY.md)
-- [Threat model](docs/THREAT_MODEL.md)
+- [Architecture / Архитектура](docs/ARCHITECTURE.md)
+- [Privacy / Приватность](docs/PRIVACY.md)
+- [Compatibility / Совместимость](docs/COMPATIBILITY.md)
+- [Threat model / Модель угроз](docs/THREAT_MODEL.md)
 - [Security policy](SECURITY.md)
+- [Contributing](CONTRIBUTING.md)
+- [Acknowledgements and third-party tooling](ACKNOWLEDGEMENTS.md)
 - [Changelog](CHANGELOG.md)
+
+## Author and community
+
+Created by **Aleksei Ulyanov**.
+
+- [YouTube](https://youtube.com/@alekseiulianov)
+- [Telegram: Sprut AI](https://t.me/Sprut_AI)
+- [Telegram community chat](https://t.me/+eH-qNIDmud8zNDZi)
+- [AI Операционка](https://t.me/tribute/app?startapp=sJyg)
 
 ## License
 
-This private beta is proprietary and all rights are reserved. See [LICENSE](LICENSE).
+Humanlike Agent Kit is released under the [MIT License](LICENSE). The bundled foundation pack is included under the same MIT terms. External tools and projects referenced during development are listed in [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md); their own licenses continue to apply.
