@@ -4,7 +4,7 @@
 
 [English](#english) · [Русский](#русский) · [Documentation](#documentation) · [License](#license)
 
-> **Status: open-source beta (`0.1.1`).** The public API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
+> **Status: private beta (`0.1.1`), licensed under MIT.** Repository access is restricted, and the API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,7 @@ Humanlike Agent Kit is not a model, chatbot UI, autonomous agent host, network s
 
 ### Quickstart
 
-Requirements: Python 3.11 or newer. The hardened profile loader and SQLite memory backend require a local POSIX filesystem; native Windows is not supported for those components in `0.1.x`.
+Requirements: access to this private repository and Python 3.11 or newer. The hardened profile loader and SQLite memory backend require a local POSIX filesystem; native Windows is not supported for those components in `0.1.x`.
 
 ```bash
 git clone https://github.com/AlekseiUL/humanlike-agent-kit.git
@@ -110,7 +110,7 @@ The installed runtime has no third-party Python dependencies. Development, build
 
 ## Русский
 
-Humanlike Agent Kit — это детерминированный поведенческий слой для ИИ-агентов. Он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
+Humanlike Agent Kit — приватная бета-библиотека под лицензией MIT. Это детерминированный поведенческий слой для ИИ-агентов: он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
 
 ### Что умеет
 
@@ -127,7 +127,7 @@ Humanlike Agent Kit — это детерминированный поведен
 
 ### Быстрый старт
 
-Нужен Python 3.11 или новее. Для защищённой загрузки профиля и SQLite-памяти требуется локальная POSIX-файловая система; нативный Windows для этих компонентов в ветке `0.1.x` не поддерживается.
+Нужны доступ к приватному репозиторию и Python 3.11 или новее. Для защищённой загрузки профиля и SQLite-памяти требуется локальная POSIX-файловая система; нативный Windows для этих компонентов в ветке `0.1.x` не поддерживается.
 
 ```bash
 git clone https://github.com/AlekseiUL/humanlike-agent-kit.git

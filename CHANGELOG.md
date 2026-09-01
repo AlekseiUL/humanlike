@@ -12,8 +12,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 - Relicensed the repository and bundled foundation pack under the MIT License.
 - Reworked the README into an English/Russian product guide with verified quickstart commands, project boundaries, author links, and attribution links.
-- Added contributor guidance, third-party acknowledgements, public security-reporting guidance, and complete package metadata.
-- Replaced stale private-beta and proprietary-distribution wording throughout current documentation.
+- Added contributor guidance, third-party acknowledgements, security-reporting guidance, and complete package metadata.
+- Reconciled stale proprietary-distribution wording with the MIT license while preserving the private-beta repository status.
 
 ### Fixed
 
