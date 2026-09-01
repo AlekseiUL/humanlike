@@ -18,6 +18,7 @@ from humanlike_agent.creative import (
     CreativeStrategy,
     FoundationPack,
     RightsDeclaration,
+    load_bundled_foundation,
     load_foundation_pack,
     plan,
     select_candidate,
@@ -372,6 +373,27 @@ def test_loader_rejects_traversal_and_symlinks(tmp_path: Path) -> None:
         _load(local_pack, allowed_root)
 
 
+def test_bundled_pack_accepts_installer_hardlinks_but_external_loader_stays_strict(
+    tmp_path: Path,
+) -> None:
+    source = Path(creative_module.__file__).parent / "data" / "foundation"
+    linked_pack = tmp_path / "linked-bundled-pack"
+    linked_pack.mkdir()
+    for name in ("manifest.json", "rubric.json", "anti-patterns.json"):
+        (linked_pack / name).hardlink_to(source / name)
+
+    bundled = load_bundled_foundation(linked_pack, allowed_root=tmp_path)
+    assert bundled.pack_id == "foundation"
+    assert bundled.pack_version == "1.0.1"
+
+    with pytest.raises(ValueError, match="single-link"):
+        load_foundation_pack(
+            linked_pack,
+            allowed_root=tmp_path,
+            expected_manifest_digest=creative_module.FOUNDATION_MANIFEST_SHA256,
+        )
+
+
 def test_repeated_missing_pack_loads_do_not_leak_directory_descriptors(tmp_path: Path) -> None:
     descriptor_directory = Path("/dev/fd")
     if not descriptor_directory.is_dir():
@@ -655,15 +677,15 @@ def test_repository_foundation_pack_is_generic_original_and_rights_eligible() ->
     assert "punchline" in anti_text and "explain" in anti_text
     assert all(record.rights.eligible for record in foundation.rubric + foundation.anti_patterns)
     assert all(
-        not record.rights.redistribution_allowed
+        record.rights.redistribution_allowed
         for record in foundation.rubric + foundation.anti_patterns
     )
     assert all(
-        record.rights.basis == "internal_original" and record.rights.owner == "Humanlike Agent Kit"
+        record.rights.basis == "original" and record.rights.owner == "Aleksei Ulyanov"
         for record in foundation.rubric + foundation.anti_patterns
     )
     assert all(
-        record.rights.license == "All-Rights-Reserved"
+        record.rights.license == "MIT"
         for record in foundation.rubric + foundation.anti_patterns
     )
     assert len(creative_module.FOUNDATION_MANIFEST_SHA256) == 64

@@ -109,4 +109,4 @@ __all__ = [
     "decide_stance",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

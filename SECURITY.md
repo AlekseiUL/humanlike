@@ -1,21 +1,19 @@
 # Security Policy
 
-Humanlike Agent Kit is a private beta. Security reports are welcome, but the project does not currently offer a public bug bounty or a public vulnerability tracker.
+Security reports are welcome. Humanlike Agent Kit does not offer a bug bounty or a fixed response-time guarantee.
 
 ## Supported versions
 
-Only the current `0.1.x` private-beta line is maintained. Earlier snapshots and uncommitted development states are unsupported.
+Only the current `0.1.x` beta line is maintained. Earlier snapshots and uncommitted development states are unsupported.
 
 ## Reporting a vulnerability
 
-Report vulnerabilities privately through one of the repository's private maintainer channels:
+Do not open a public issue for a vulnerability.
 
-1. Prefer a private GitHub Security Advisory if that feature is available for the repository.
-2. Otherwise contact a maintainer through the same private channel that granted repository access.
+1. Prefer a private GitHub Security Advisory through the repository's **Security** tab.
+2. If that channel is unavailable, contact the maintainer through one of the official links in [README.md](README.md) and disclose only that you need a private security channel. Do not send exploit details, secrets, transcripts, or personal data through a public chat.
 
-Do not include secrets, private transcripts, production memory databases, or personal data in a public issue. Provide the smallest synthetic reproduction that demonstrates the problem.
-
-A useful report includes:
+Use the smallest synthetic reproduction that demonstrates the problem. A useful report includes:
 
 - affected commit and package version;
 - operating system and Python version;
@@ -24,7 +22,7 @@ A useful report includes:
 - reproduction steps using synthetic data;
 - whether a symlink, hardlink, unusual filesystem, or concurrent process is involved.
 
-Maintainers should acknowledge a report before discussing disclosure timing. No fixed response-time guarantee is offered during private beta.
+Maintainers should acknowledge a report before discussing coordinated disclosure timing.
 
 ## Security assumptions
 
@@ -50,7 +48,7 @@ See [Threat model](docs/THREAT_MODEL.md) for scope, controls, and residual risks
 
 ## Deployment guidance
 
-- Keep the repository, profile, and state directory private to the service account.
+- Keep the repository, profile, and state directory writable only by the service account.
 - Do not run the plugin from a shared or group-writable checkout.
 - Do not place the memory ledger on network, synchronized, or untrusted removable storage.
 - Keep memory disabled unless the host integration has an explicit consent and retention policy.
@@ -61,4 +59,4 @@ See [Threat model](docs/THREAT_MODEL.md) for scope, controls, and residual risks
 
 ## Dependency and release hygiene
 
-The installed runtime declares no third-party runtime dependencies, but the build backend and development tools are separate supply-chain inputs. Pin and review them in controlled build environments. Private-beta artifacts should be built from a reviewed commit and distributed only through authorized channels.
+The installed runtime declares no third-party runtime dependencies. Build and development tools remain supply-chain inputs and are pinned or locked for CI. Review dependency and action updates, build from a reviewed commit, and verify both wheel installation and the offline smoke commands before release. See [Acknowledgements](ACKNOWLEDGEMENTS.md) for the external tooling inventory.

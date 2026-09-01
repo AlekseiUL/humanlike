@@ -16,6 +16,8 @@ REQUIRED_DOCUMENTS = (
     "SECURITY.md",
     "LICENSE",
     "CHANGELOG.md",
+    "ACKNOWLEDGEMENTS.md",
+    "CONTRIBUTING.md",
     "docs/ARCHITECTURE.md",
     "docs/PRIVACY.md",
     "docs/COMPATIBILITY.md",
@@ -40,12 +42,12 @@ def test_release_documents_are_complete_and_local_links_resolve() -> None:
             assert (path.parent / target).resolve(strict=True), (relative_name, target)
 
 
-def test_release_version_and_proprietary_license_are_synchronized() -> None:
+def test_release_version_and_mit_license_are_synchronized() -> None:
     metadata = tomllib.loads(
         (REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     )
     project = metadata["project"]
-    assert project["license"] == "LicenseRef-Proprietary"
+    assert project["license"] == "MIT"
     assert project["license-files"] == ["LICENSE"]
     assert metadata["build-system"]["requires"] == ["setuptools==84.0.0"]
     assert "setuptools==84.0.0" in project["optional-dependencies"]["dev"]
@@ -59,9 +61,29 @@ def test_release_version_and_proprietary_license_are_synchronized() -> None:
     assert f"## [{humanlike_agent.__version__}]" in changelog
 
     license_text = (REPOSITORY_ROOT / "LICENSE").read_text(encoding="utf-8")
-    assert "All rights reserved." in license_text
-    assert "No open-source license is granted or implied." in license_text
-    assert "Permission is hereby granted" not in license_text
+    assert "MIT License" in license_text
+    assert "Copyright (c) 2026 Aleksei Ulyanov" in license_text
+    assert "Permission is hereby granted" in license_text
+    assert "All rights reserved." not in license_text
+
+    current_docs = "\n".join(
+        (REPOSITORY_ROOT / name).read_text(encoding="utf-8")
+        for name in REQUIRED_DOCUMENTS
+        if name != "LICENSE"
+    )
+    assert "LicenseRef-Proprietary" not in current_docs
+    assert "No open-source license is granted" not in current_docs
+
+
+def test_readme_contains_bilingual_description_creator_links_and_attribution() -> None:
+    readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
+    assert "## English" in readme
+    assert "## Русский" in readme
+    assert "https://youtube.com/@alekseiulianov" in readme
+    assert "https://t.me/Sprut_AI" in readme
+    assert "https://t.me/+eH-qNIDmud8zNDZi" in readme
+    assert "https://t.me/tribute/app?startapp=sJyg" in readme
+    assert "ACKNOWLEDGEMENTS.md" in readme
 
 
 def test_documented_platform_and_hermes_compatibility_are_explicit() -> None:

@@ -6,11 +6,11 @@
       "description": "Reject concepts that merely refill a generic template with different nouns.",
       "rights": {
         "eligible": true,
-        "basis": "internal_original",
-        "owner": "Humanlike Agent Kit",
-        "license": "All-Rights-Reserved",
+        "basis": "original",
+        "owner": "Aleksei Ulyanov",
+        "license": "MIT",
         "use_scope": "creative_runtime",
-        "redistribution_allowed": false,
+        "redistribution_allowed": true,
         "provenance_sha256": "041e11a07fbb3fc875c3006aa41ba023899182434ffe8a6fedbc6b0b0ad31a42"
       }
     },
@@ -19,11 +19,11 @@
       "description": "Penalize repeated sentence or idea shapes that make distinct candidates converge.",
       "rights": {
         "eligible": true,
-        "basis": "internal_original",
-        "owner": "Humanlike Agent Kit",
-        "license": "All-Rights-Reserved",
+        "basis": "original",
+        "owner": "Aleksei Ulyanov",
+        "license": "MIT",
         "use_scope": "creative_runtime",
-        "redistribution_allowed": false,
+        "redistribution_allowed": true,
         "provenance_sha256": "182fadbf15842efd6b587ae8406d2fcac245789ba9380b76ae68f044bd6dcf75"
       }
     },
@@ -32,11 +32,11 @@
       "description": "When a concise comic turn lands, avoid explaining the punchline afterward.",
       "rights": {
         "eligible": true,
-        "basis": "internal_original",
-        "owner": "Humanlike Agent Kit",
-        "license": "All-Rights-Reserved",
+        "basis": "original",
+        "owner": "Aleksei Ulyanov",
+        "license": "MIT",
         "use_scope": "creative_runtime",
-        "redistribution_allowed": false,
+        "redistribution_allowed": true,
         "provenance_sha256": "21949ca71857c1eb7f82d5a9e80439fca5d9e8a1e2fb3b3126bf0efc71099734"
       }
     },
@@ -45,11 +45,11 @@
       "description": "Do not confuse unusual adjectives with a genuinely different concept.",
       "rights": {
         "eligible": true,
-        "basis": "internal_original",
-        "owner": "Humanlike Agent Kit",
-        "license": "All-Rights-Reserved",
+        "basis": "original",
+        "owner": "Aleksei Ulyanov",
+        "license": "MIT",
         "use_scope": "creative_runtime",
-        "redistribution_allowed": false,
+        "redistribution_allowed": true,
         "provenance_sha256": "5fe48be5fd001e69a7e8d4ebb682009635a8496900fd51e4d081deffab3fa91a"
       }
     }
