@@ -1,0 +1,9 @@
+schema = "humanlike-hermes/v1"
+profile_id = "hermes-humanlike"
+persona_path = "SOUL.md"
+# Hermes may persist injected context in its own transcript storage.
+# Humanlike no-save and expiry cannot erase Hermes transcript copies.
+memory_enabled = false
+acknowledge_host_context_persistence = false
+normal_context_chars = 1200
+deep_context_chars = 2400

@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.14"
+          - os: macos-latest
+            python: "3.13"
+
+    steps:
+      - name: Check out complete branch history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          version: "0.12.8"
+
+      - name: Install locked development environment
+        run: uv sync --locked --all-extras
+
+      - name: Run tests
+        run: uv run pytest -q
+
+      - name: Run lint
+        run: uv run ruff check .
+
+      - name: Check release privacy
+        run: uv run python scripts/privacy_gate.py .
+
+      - name: Build wheel and source archive
+        env:
+          SOURCE_DATE_EPOCH: "1767225600"
+        run: uv build --no-build-isolation
+
+      - name: Smoke-test the installed wheel
+        run: |
+          python -m venv .wheel-smoke
+          uv pip install --python .wheel-smoke/bin/python dist/*.whl
+          .wheel-smoke/bin/humanlike route --locale en --text "Rewrite this paragraph in a neutral tone."
+          .wheel-smoke/bin/humanlike eval
+          .wheel-smoke/bin/humanlike doctor --config examples/hermes-humanlike/humanlike.toml

@@ -1,0 +1,17 @@
+{
+  "schema": "foundation-pack/v1",
+  "pack_id": "foundation",
+  "pack_version": "1.0.0",
+  "runtime_api": 1,
+  "rights_policy": "creative-rights/v1",
+  "files": {
+    "rubric.json": {
+      "bytes": 2556,
+      "sha256": "e96ede405c9bd45169befbb4e945d4bb8a3da4d009897da96a3fd955c66dccf3"
+    },
+    "anti-patterns.json": {
+      "bytes": 2040,
+      "sha256": "bdd15d495d28c41272e3de44cc315a49a7cd89fedbfe8889007821223645f07b"
+    }
+  }
+}

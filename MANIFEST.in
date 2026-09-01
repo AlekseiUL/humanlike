@@ -1,0 +1,16 @@
+include CHANGELOG.md
+include LICENSE
+include README.md
+include SECURITY.md
+include MANIFEST.in
+include __init__.py
+include build_backend.py
+include plugin.yaml
+include uv.lock
+recursive-include .github *.yml
+recursive-include docs *.md
+recursive-include evals *.jsonl
+recursive-include examples *.md *.toml
+recursive-include packs *.json
+recursive-include scripts *.py
+recursive-include tests *.json *.py
