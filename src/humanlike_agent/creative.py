@@ -702,7 +702,13 @@ def _open_pack_directory(path: os.PathLike[str] | str, allowed_root: os.PathLike
         raise
 
 
-def _read_regular_file(directory_fd: int, name: str, limit: int) -> bytes:
+def _read_regular_file(
+    directory_fd: int,
+    name: str,
+    limit: int,
+    *,
+    require_single_link: bool,
+) -> bytes:
     flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
     flags |= getattr(os, "O_NONBLOCK", 0)
     try:
@@ -714,7 +720,7 @@ def _read_regular_file(directory_fd: int, name: str, limit: int) -> bytes:
         ) from error
     try:
         opened = os.fstat(descriptor)
-        if not stat.S_ISREG(opened.st_mode) or opened.st_nlink != 1:
+        if not stat.S_ISREG(opened.st_mode) or (require_single_link and opened.st_nlink != 1):
             raise ValueError(f"pack file {name} must be a single-link regular file")
         if (before.st_dev, before.st_ino) != (opened.st_dev, opened.st_ino):
             raise ValueError(f"pack file {name} changed while opening")
@@ -882,15 +888,41 @@ def load_foundation_pack(
 ) -> FoundationPack:
     """Load a pack only when its bytes match an external manifest trust anchor."""
 
+    return _load_foundation_pack(
+        path,
+        allowed_root=allowed_root,
+        expected_manifest_digest=expected_manifest_digest,
+        require_single_link=True,
+    )
+
+
+def _load_foundation_pack(
+    path: os.PathLike[str] | str,
+    *,
+    allowed_root: os.PathLike[str] | str,
+    expected_manifest_digest: str,
+    require_single_link: bool,
+) -> FoundationPack:
+
     pinned_manifest = _sha256(expected_manifest_digest, "expected manifest digest")
     directory_fd = _open_pack_directory(path, allowed_root)
     try:
-        manifest_raw = _read_regular_file(directory_fd, "manifest.json", _MAX_MANIFEST_BYTES)
+        manifest_raw = _read_regular_file(
+            directory_fd,
+            "manifest.json",
+            _MAX_MANIFEST_BYTES,
+            require_single_link=require_single_link,
+        )
         if hashlib.sha256(manifest_raw).hexdigest() != pinned_manifest:
             raise ValueError("manifest digest does not match the expected trust anchor")
         pack_id, version, descriptors = _manifest(manifest_raw)
         raw_files = {
-            name: _read_regular_file(directory_fd, name, _MAX_PACK_FILE_BYTES)
+            name: _read_regular_file(
+                directory_fd,
+                name,
+                _MAX_PACK_FILE_BYTES,
+                require_single_link=require_single_link,
+            )
             for name in _PACK_FILES
         }
     finally:
@@ -930,12 +962,13 @@ def load_bundled_foundation(
     *,
     allowed_root: os.PathLike[str] | str,
 ) -> FoundationPack:
-    """Load the bundled private Foundation pack against its code-owned digest."""
+    """Load the bundled Foundation pack against its code-owned digest."""
 
-    return FoundationPack.load(
+    return _load_foundation_pack(
         path,
         allowed_root=allowed_root,
         expected_manifest_digest=FOUNDATION_MANIFEST_SHA256,
+        require_single_link=False,
     )
 
 

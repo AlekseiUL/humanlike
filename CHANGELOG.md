@@ -18,6 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 ### Fixed
 
 - Synchronized foundation-pack rights declarations and manifest hashes with the repository license.
+- Fixed installed-wheel `humanlike eval` on Linux environments where package installers use hardlinks for bundled data, while keeping external pack loading single-link strict.
 - Added regression checks that prevent proprietary metadata from reappearing in an MIT release.
 
 ## [0.1.0] - 2026-09-01
