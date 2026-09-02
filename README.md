@@ -60,8 +60,11 @@ humanlike eval
 Validate the included Hermes reference profile:
 
 ```bash
+chmod -R go-w examples/hermes-humanlike
 humanlike doctor --config examples/hermes-humanlike/humanlike.toml
 ```
+
+The hardened profile loader intentionally rejects group- or world-writable profile files and directories. The `chmod` step keeps the quickstart working in environments whose default `umask` is `0002`.
 
 Each command prints one JSON object. Exit status `0` means success; validation errors use exit status `2`; `humanlike eval` uses exit status `1` when a declared expectation fails.
 
@@ -162,8 +165,11 @@ humanlike eval
 Проверка примера профиля Hermes:
 
 ```bash
+chmod -R go-w examples/hermes-humanlike
 humanlike doctor --config examples/hermes-humanlike/humanlike.toml
 ```
+
+Защищённый загрузчик намеренно отклоняет файлы и каталоги профиля с правом записи для группы или остальных пользователей. Команда `chmod` нужна в окружениях с `umask 0002`.
 
 Каждая команда печатает один JSON-объект. Код завершения `0` означает успех, `2` — ошибку входных данных или конфигурации, а `humanlike eval` возвращает `1`, если хотя бы одна заявленная проверка не пройдена.
 

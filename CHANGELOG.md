@@ -16,6 +16,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 - Prepared the repository documentation for public beta availability under the MIT License.
 - Shortened the public product and repository name to **Humanlike** while keeping the `humanlike-agent-kit` package and plugin identifiers stable for compatibility.
 
+### Fixed
+
+- Made tests and documented `humanlike doctor` quickstarts reliable under `umask 0002` without weakening the hardened profile-permission checks.
+
 ## [0.1.1] - 2026-09-01
 
 ### Changed

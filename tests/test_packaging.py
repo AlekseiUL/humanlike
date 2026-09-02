@@ -152,14 +152,16 @@ print(json.dumps({"hooks": list(host.hooks), "value": entry_point.value}))
     }
 
     profile = tmp_path / "profile"
-    profile.mkdir()
-    (profile / "SOUL.md").write_text(
+    profile.mkdir(mode=0o700)
+    persona = profile / "SOUL.md"
+    persona.write_text(
         "# Identity\nA portable, truthful AI collaborator.\n"
         "# Voice\nWarm and direct.\n"
         "# Values\nTruth and autonomy.\n"
         "# Hard boundaries\nProtect privacy.\n",
         encoding="utf-8",
     )
+    persona.chmod(0o600)
     config = profile / "humanlike.toml"
     config.write_text(
         'schema = "humanlike-hermes/v1"\n'
@@ -168,6 +170,7 @@ print(json.dumps({"hooks": list(host.hooks), "value": entry_point.value}))
         "memory_enabled = false\n",
         encoding="utf-8",
     )
+    config.chmod(0o600)
 
     route = _payload(
         _run(
