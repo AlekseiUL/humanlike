@@ -83,6 +83,10 @@ def test_wheel_contains_runtime_data_and_installed_cli_smokes(tmp_path: Path) ->
 
     with zipfile.ZipFile(wheel) as archive:
         names = set(archive.namelist())
+        entry_points_name = next(
+            name for name in names if name.endswith(".dist-info/entry_points.txt")
+        )
+        entry_points = archive.read(entry_points_name).decode("utf-8")
     assert {
         "humanlike_agent/data/evals/en.jsonl",
         "humanlike_agent/data/evals/ru.jsonl",
@@ -90,6 +94,9 @@ def test_wheel_contains_runtime_data_and_installed_cli_smokes(tmp_path: Path) ->
         "humanlike_agent/data/foundation/manifest.json",
         "humanlike_agent/data/foundation/rubric.json",
     } <= names
+    assert "humanlike_agent/hermes_plugin.py" in names
+    assert "[hermes_agent.plugins]" in entry_points
+    assert "humanlike-agent-kit = humanlike_agent.hermes_plugin" in entry_points
 
     uv = shutil.which("uv")
     assert uv is not None
@@ -105,6 +112,44 @@ def test_wheel_contains_runtime_data_and_installed_cli_smokes(tmp_path: Path) ->
         cwd=tmp_path,
     )
     assert installed.returncode == 0, installed.stderr or installed.stdout
+
+    entrypoint_smoke = _run(
+        [
+            str(python),
+            "-c",
+            """
+import importlib.metadata
+import json
+
+entry_points = importlib.metadata.entry_points().select(group="hermes_agent.plugins")
+entry_point = next(item for item in entry_points if item.name == "humanlike-agent-kit")
+module = entry_point.load()
+
+class Host:
+    def __init__(self):
+        self.hooks = {}
+
+    def register_hook(self, name, callback):
+        self.hooks[name] = callback
+
+host = Host()
+module.register(host)
+print(json.dumps({"hooks": list(host.hooks), "value": entry_point.value}))
+""",
+        ],
+        cwd=tmp_path,
+    )
+    assert entrypoint_smoke.returncode == 0, entrypoint_smoke.stderr
+    entrypoint_payload = json.loads(entrypoint_smoke.stdout)
+    assert entrypoint_payload == {
+        "hooks": [
+            "pre_llm_call",
+            "transform_llm_output",
+            "post_llm_call",
+            "on_session_finalize",
+        ],
+        "value": "humanlike_agent.hermes_plugin",
+    }
 
     profile = tmp_path / "profile"
     profile.mkdir()

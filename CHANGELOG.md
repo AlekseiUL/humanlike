@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 ## [Unreleased]
 
+### Added
+
+- Added a bilingual Hermes wheel-entry-point installation path with runtime validation, commit pinning, rollback, and removal.
+- Added a memory-off starter runtime that Hermes discovers from the installed Python package.
+
+### Changed
+
+- Prepared the repository documentation for public beta availability under the MIT License.
+
 ## [0.1.1] - 2026-09-01
 
 ### Changed

@@ -5,6 +5,7 @@ import py_compile
 import shutil
 import subprocess
 import sys
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -36,9 +37,9 @@ def _runtime(*, memory: object | None = None) -> HumanlikeRuntime:
 
 class _FakeHost:
     def __init__(self) -> None:
-        self.hooks: dict[str, object] = {}
+        self.hooks: dict[str, Callable[..., object]] = {}
 
-    def register_hook(self, name: str, callback: object) -> None:
+    def register_hook(self, name: str, callback: Callable[..., object]) -> None:
         self.hooks[name] = callback
 
 
@@ -444,6 +445,28 @@ def test_module_register_stays_neutral_when_default_profile_is_broken(tmp_path: 
         host.hooks["pre_llm_call"](session_id="session-1", turn_id="turn-1", user_message="secret")
         is None
     )
+
+
+def test_wheel_entrypoint_registers_memory_off_starter_runtime() -> None:
+    from humanlike_agent.hermes_plugin import register
+
+    host = _FakeHost()
+    register(host)
+
+    assert tuple(host.hooks) == (
+        "pre_llm_call",
+        "transform_llm_output",
+        "post_llm_call",
+        "on_session_finalize",
+    )
+    result = host.hooks["pre_llm_call"](
+        session_id="entrypoint-session",
+        turn_id="entrypoint-turn",
+        user_message="Help me answer carefully.",
+        locale="en",
+    )
+    assert isinstance(result, dict)
+    assert "truthful about being an AI" in result["context"]
 
 
 def test_example_discloses_that_humanlike_cannot_erase_host_transcript_copies() -> None:
