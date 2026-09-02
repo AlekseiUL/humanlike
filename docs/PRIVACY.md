@@ -1,6 +1,6 @@
 # Privacy
 
-Humanlike Agent Kit minimizes the data it owns, but it operates inside a larger agent host. This document separates runtime behavior from host and model-provider behavior.
+Humanlike minimizes the data it owns, but it operates inside a larger agent host. This document separates runtime behavior from host and model-provider behavior.
 
 ## Privacy boundary
 

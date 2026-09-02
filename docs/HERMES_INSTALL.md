@@ -1,17 +1,17 @@
-# Installing Humanlike Agent Kit in Hermes
+# Installing Humanlike in Hermes
 
 [English](#english) · [Русский](#русский)
 
 ## English
 
-Humanlike Agent Kit is distributed as a Python package with an official Hermes plugin entry point. Hermes discovers it from its own runtime environment. GitHub authentication is not required for the public repository.
+Humanlike is distributed as a Python package with an official Hermes plugin entry point. Hermes discovers it from its own runtime environment. GitHub authentication is not required for the public repository.
 
-The full source repository contains adversarial test strings used by its safety suite. Because Hermes correctly scans every file in a directory-plugin clone, installing the full repository with `hermes plugins install AlekseiUL/humanlike-agent-kit` is not the supported route. Install the reviewed Python package into the Hermes runtime instead.
+The full source repository contains adversarial test strings used by its safety suite. Because Hermes correctly scans every file in a directory-plugin clone, installing the full repository with `hermes plugins install AlekseiUL/humanlike` is not the supported route. Install the reviewed Python package into the Hermes runtime instead.
 
 ### Requirements
 
 - Hermes Agent with `hermes plugins` (verified against Hermes v0.21).
-- `uv` and Git access to `AlekseiUL/humanlike-agent-kit`.
+- `uv` and Git access to `AlekseiUL/humanlike`.
 - macOS, Linux, or WSL with Python 3.11 or newer.
 
 ### Install
@@ -21,7 +21,7 @@ Use a reviewed full commit SHA rather than a moving branch:
 ```bash
 HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
 uv pip install --python "$HERMES_PYTHON" \
-  "git+https://github.com/AlekseiUL/humanlike-agent-kit.git@<40-character-commit-sha>"
+  "git+https://github.com/AlekseiUL/humanlike.git@<40-character-commit-sha>"
 hermes plugins enable humanlike-agent-kit --no-allow-tool-override
 hermes plugins show humanlike-agent-kit
 ```
@@ -65,14 +65,14 @@ The plugin does not change model credentials or delete Hermes transcripts. Unins
 
 ## Русский
 
-Humanlike Agent Kit устанавливается как Python-пакет с официальной точкой подключения Hermes. Hermes находит плагин в своей рабочей Python-среде. Для публичного репозитория авторизация GitHub не требуется.
+Humanlike устанавливается как Python-пакет с официальной точкой подключения Hermes. Hermes находит плагин в своей рабочей Python-среде. Для публичного репозитория авторизация GitHub не требуется.
 
-В полном репозитории есть провокационные тестовые строки для проверки безопасности. Hermes правильно сканирует все файлы directory-плагина и блокирует такие строки. Поэтому команда `hermes plugins install AlekseiUL/humanlike-agent-kit` для этого репозитория не подходит. Надёжный путь — установить проверенный Python-пакет прямо в среду Hermes.
+В полном репозитории есть провокационные тестовые строки для проверки безопасности. Hermes правильно сканирует все файлы directory-плагина и блокирует такие строки. Поэтому команда `hermes plugins install AlekseiUL/humanlike` для этого репозитория не подходит. Надёжный путь — установить проверенный Python-пакет прямо в среду Hermes.
 
 ### Требования
 
 - Hermes Agent с командой `hermes plugins` (проверено на Hermes v0.21).
-- `uv` и доступ к `AlekseiUL/humanlike-agent-kit` через Git.
+- `uv` и доступ к `AlekseiUL/humanlike` через Git.
 - macOS, Linux или WSL и Python 3.11 или новее.
 
 ### Установка
@@ -82,7 +82,7 @@ Humanlike Agent Kit устанавливается как Python-пакет с �
 ```bash
 HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
 uv pip install --python "$HERMES_PYTHON" \
-  "git+https://github.com/AlekseiUL/humanlike-agent-kit.git@<40-character-commit-sha>"
+  "git+https://github.com/AlekseiUL/humanlike.git@<40-character-commit-sha>"
 hermes plugins enable humanlike-agent-kit --no-allow-tool-override
 hermes plugins show humanlike-agent-kit
 ```

@@ -1,4 +1,4 @@
-# Humanlike Agent Kit v0.1 — План реализации
+# Humanlike v0.1 — План реализации
 
 > Для исполнения используется subagent-driven development с TDD и двухэтапным review.
 

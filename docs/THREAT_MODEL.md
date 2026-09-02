@@ -1,6 +1,6 @@
 # Threat Model
 
-This threat model covers Humanlike Agent Kit beta `0.1.x`: the provider-neutral core, local profiles and creative packs, optional SQLite memory, offline conformance runner, and reference Hermes adapter.
+This threat model covers Humanlike beta `0.1.x`: the provider-neutral core, local profiles and creative packs, optional SQLite memory, offline conformance runner, and reference Hermes adapter.
 
 ## Security goals
 

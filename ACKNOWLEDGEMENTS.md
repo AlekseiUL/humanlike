@@ -1,6 +1,6 @@
 # Acknowledgements and third-party tooling
 
-Humanlike Agent Kit's runtime code and bundled foundation pack are released under the repository's MIT License. The installed Python package declares no third-party runtime dependencies.
+Humanlike's runtime code and bundled foundation pack are released under the repository's MIT License. The installed Python package declares no third-party runtime dependencies.
 
 The following external open-source projects are used for development, packaging, continuous integration, or as an integration target. They are not relicensed by this repository, and their original licenses continue to apply.
 

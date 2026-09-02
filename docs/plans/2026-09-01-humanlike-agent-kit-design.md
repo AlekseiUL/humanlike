@@ -1,4 +1,4 @@
-# Humanlike Agent Kit — Design Document
+# Humanlike — Design Document
 
 **Дата:** 2026-09-01  
 **Инициатор:** владелец продукта
@@ -10,7 +10,7 @@
 
 ## Решение
 
-Создать **Humanlike Agent Kit** — provider- и host-neutral Python runtime, который готовит компактный поведенческий план для каждого хода, но не заменяет LLM, agent host или memory database. Первая эталонная интеграция — Hermes Humanlike.
+Создать **Humanlike** — provider- и host-neutral Python runtime, который готовит компактный поведенческий план для каждого хода, но не заменяет LLM, agent host или memory database. Первая эталонная интеграция — Hermes Humanlike.
 
 Продукт отвечает за семь вещей:
 

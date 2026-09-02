@@ -1,4 +1,4 @@
-"""Execute the Humanlike Agent Kit command line."""
+"""Execute the Humanlike command line."""
 
 from .cli import main
 

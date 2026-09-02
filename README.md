@@ -1,4 +1,4 @@
-# Humanlike Agent Kit
+# Humanlike
 
 **Deterministic, provider-neutral behavior controls for conversational AI agents.**
 
@@ -17,7 +17,7 @@ flowchart LR
 
 ## English
 
-Humanlike Agent Kit is a behavioral planning layer for AI agents. It classifies each turn, selects a social and cognitive mode, assembles bounded guidance, and returns privacy-aware metadata. The host remains responsible for model calls, tools, transport, output delivery, transcript retention, and policy enforcement.
+Humanlike is a behavioral planning layer for AI agents. It classifies each turn, selects a social and cognitive mode, assembles bounded guidance, and returns privacy-aware metadata. The host remains responsible for model calls, tools, transport, output delivery, transcript retention, and policy enforcement.
 
 ### What it provides
 
@@ -31,15 +31,15 @@ Humanlike Agent Kit is a behavioral planning layer for AI agents. It classifies 
 
 ### What it is not
 
-Humanlike Agent Kit is not a model, chatbot UI, autonomous agent host, network service, or complete model-safety system. It does not make an AI biologically human, hide AI identity, or control data already copied into a host or provider transcript.
+Humanlike is not a model, chatbot UI, autonomous agent host, network service, or complete model-safety system. It does not make an AI biologically human, hide AI identity, or control data already copied into a host or provider transcript.
 
 ### Quickstart
 
 Requirements: Git and Python 3.11 or newer. The hardened profile loader and SQLite memory backend require a local POSIX filesystem; native Windows is not supported for those components in `0.1.x`.
 
 ```bash
-git clone https://github.com/AlekseiUL/humanlike-agent-kit.git
-cd humanlike-agent-kit
+git clone https://github.com/AlekseiUL/humanlike.git
+cd humanlike
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install .
@@ -96,7 +96,7 @@ Install the package into Hermes' own Python environment, validate it, and then e
 ```bash
 HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
 uv pip install --python "$HERMES_PYTHON" \
-  "git+https://github.com/AlekseiUL/humanlike-agent-kit.git@<40-character-commit-sha>"
+  "git+https://github.com/AlekseiUL/humanlike.git@<40-character-commit-sha>"
 hermes plugins enable humanlike-agent-kit --no-allow-tool-override
 hermes plugins show humanlike-agent-kit
 ```
@@ -120,7 +120,7 @@ The installed runtime has no third-party Python dependencies. Development, build
 
 ## Русский
 
-Humanlike Agent Kit — публичная бета-библиотека под лицензией MIT. Это детерминированный поведенческий слой для ИИ-агентов: он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
+Humanlike — публичная бета-библиотека под лицензией MIT. Это детерминированный поведенческий слой для ИИ-агентов: он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
 
 ### Что умеет
 
@@ -140,8 +140,8 @@ Humanlike Agent Kit — публичная бета-библиотека под 
 Нужны Git и Python 3.11 или новее. Для защищённой загрузки профиля и SQLite-памяти требуется локальная POSIX-файловая система; нативный Windows для этих компонентов в ветке `0.1.x` не поддерживается.
 
 ```bash
-git clone https://github.com/AlekseiUL/humanlike-agent-kit.git
-cd humanlike-agent-kit
+git clone https://github.com/AlekseiUL/humanlike.git
+cd humanlike
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install .
@@ -174,7 +174,7 @@ humanlike doctor --config examples/hermes-humanlike/humanlike.toml
 ```bash
 HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
 uv pip install --python "$HERMES_PYTHON" \
-  "git+https://github.com/AlekseiUL/humanlike-agent-kit.git@<40-character-commit-sha>"
+  "git+https://github.com/AlekseiUL/humanlike.git@<40-character-commit-sha>"
 hermes plugins enable humanlike-agent-kit --no-allow-tool-override
 hermes plugins show humanlike-agent-kit
 ```
@@ -206,4 +206,4 @@ Created by **Aleksei Ulyanov**.
 
 ## License
 
-Humanlike Agent Kit is released under the [MIT License](LICENSE). The bundled foundation pack is included under the same MIT terms. External tools and projects referenced during development are listed in [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md); their own licenses continue to apply.
+Humanlike is released under the [MIT License](LICENSE). The bundled foundation pack is included under the same MIT terms. External tools and projects referenced during development are listed in [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md); their own licenses continue to apply.

@@ -1,4 +1,4 @@
-"""Public contracts for the Humanlike Agent Kit."""
+"""Public contracts for the Humanlike."""
 
 from .creative import (
     FOUNDATION_MANIFEST_SHA256,

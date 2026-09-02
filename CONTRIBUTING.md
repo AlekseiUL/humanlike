@@ -1,6 +1,6 @@
 # Contributing
 
-Contributions are welcome when they keep Humanlike Agent Kit deterministic, provider-neutral, bounded, and testable offline.
+Contributions are welcome when they keep Humanlike deterministic, provider-neutral, bounded, and testable offline.
 
 ## Before opening a pull request
 
