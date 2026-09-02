@@ -149,7 +149,14 @@ def test_readme_quickstart_commands_execute_offline() -> None:
     readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
     assert re.search(r"^humanlike route ", readme, re.MULTILINE)
     assert re.search(r"^humanlike eval$", readme, re.MULTILINE)
+    assert "chmod -R go-w examples/hermes-humanlike" in readme
     assert re.search(r"^humanlike doctor ", readme, re.MULTILINE)
+
+    profile_root = REPOSITORY_ROOT / "examples" / "hermes-humanlike"
+    profile_root.chmod(0o700)
+    for profile_file in profile_root.iterdir():
+        if profile_file.is_file():
+            profile_file.chmod(0o600)
 
     commands = (
         ("route", "--locale", "en", "--text", "Rewrite this paragraph in a neutral tone."),

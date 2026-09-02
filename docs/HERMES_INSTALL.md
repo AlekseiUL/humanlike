@@ -46,6 +46,13 @@ humanlike eval
 
 `hermes plugins show` confirms that Hermes discovered the installed entry point and reports whether it is enabled. `humanlike eval` loads the installed package and runs its bundled offline behavior suite. For a source checkout, `hermes plugins doctor . --ci` separately validates the directory-plugin adapter.
 
+When validating the bundled source profile with `humanlike doctor`, make it non-writable by the group and other users first. This is required on systems using `umask 0002`:
+
+```bash
+chmod -R go-w examples/hermes-humanlike
+humanlike doctor --config examples/hermes-humanlike/humanlike.toml
+```
+
 ### Roll back or remove
 
 Disable first. This is the fastest rollback:
@@ -106,6 +113,13 @@ humanlike eval
 ```
 
 `hermes plugins show` подтверждает, что Hermes обнаружил установленную точку подключения, и показывает её состояние. `humanlike eval` загружает установленный пакет и запускает встроенный офлайн-набор поведенческих проверок. В клоне исходников команда `hermes plugins doctor . --ci` отдельно проверяет directory-адаптер.
+
+Перед проверкой встроенного профиля командой `humanlike doctor` запретите запись для группы и остальных пользователей. Это обязательно в системах с `umask 0002`:
+
+```bash
+chmod -R go-w examples/hermes-humanlike
+humanlike doctor --config examples/hermes-humanlike/humanlike.toml
+```
 
 ### Откат и удаление
 
