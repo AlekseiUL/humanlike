@@ -35,10 +35,10 @@ humanlike = "humanlike_agent.cli:main"
 humanlike-agent-kit = "humanlike_agent.hermes_plugin"
 
 [project.urls]
-Homepage = "https://github.com/AlekseiUL/humanlike-agent-kit"
-Repository = "https://github.com/AlekseiUL/humanlike-agent-kit"
-Issues = "https://github.com/AlekseiUL/humanlike-agent-kit/issues"
-Documentation = "https://github.com/AlekseiUL/humanlike-agent-kit#readme"
+Homepage = "https://github.com/AlekseiUL/humanlike"
+Repository = "https://github.com/AlekseiUL/humanlike"
+Issues = "https://github.com/AlekseiUL/humanlike/issues"
+Documentation = "https://github.com/AlekseiUL/humanlike#readme"
 
 [project.optional-dependencies]
 dev = [

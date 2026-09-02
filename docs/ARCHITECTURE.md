@@ -1,6 +1,6 @@
 # Architecture
 
-Humanlike Agent Kit is an in-process behavioral planning library. It sits between an agent host and that host's model call, but it does not replace either one.
+Humanlike is an in-process behavioral planning library. It sits between an agent host and that host's model call, but it does not replace either one.
 
 ## System boundary
 

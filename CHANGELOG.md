@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Humanlike Agent Kit are documented in this file.
+All notable changes to Humanlike are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The `0.1.x` beta line does not yet promise API stability.
 
@@ -14,6 +14,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 ### Changed
 
 - Prepared the repository documentation for public beta availability under the MIT License.
+- Shortened the public product and repository name to **Humanlike** while keeping the `humanlike-agent-kit` package and plugin identifiers stable for compatibility.
 
 ## [0.1.1] - 2026-09-01
 

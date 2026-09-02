@@ -1,4 +1,4 @@
-"""Stable JSON command-line diagnostics for Humanlike Agent Kit."""
+"""Stable JSON command-line diagnostics for Humanlike."""
 
 from __future__ import annotations
 

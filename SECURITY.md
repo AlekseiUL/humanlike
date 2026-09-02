@@ -1,6 +1,6 @@
 # Security Policy
 
-Security reports are welcome. Humanlike Agent Kit does not offer a bug bounty or a fixed response-time guarantee.
+Security reports are welcome. Humanlike does not offer a bug bounty or a fixed response-time guarantee.
 
 ## Supported versions
 

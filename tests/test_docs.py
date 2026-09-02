@@ -124,7 +124,7 @@ def test_hermes_wheel_install_uses_runtime_python_and_entrypoint_validation() ->
     for command in install_commands:
         assert command in readme
     assert "<40-character-commit-sha>" in install
-    assert "\nhermes plugins install AlekseiUL/humanlike-agent-kit" not in install
+    assert "\nhermes plugins install AlekseiUL/humanlike" not in install
     assert "hermes plugins doctor . --ci" in install
     assert "hermes plugins doctor humanlike-agent-kit --ci" not in install
     assert "humanlike install" not in install
