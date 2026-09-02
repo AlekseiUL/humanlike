@@ -25,6 +25,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 - Windows path loaders fail closed on traversal, symlinks, junctions, and other reparse points. The optional SQLite memory ledger remains POSIX-only rather than weakening its locking and ownership contract.
 
+### Fixed
+
+- Made tests and documented `humanlike doctor` quickstarts reliable under `umask 0002` without weakening the hardened profile-permission checks.
+
 ## [0.1.1] - 2026-09-01
 
 ### Changed
