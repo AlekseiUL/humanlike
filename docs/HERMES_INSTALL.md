@@ -4,154 +4,122 @@
 
 ## English
 
-Humanlike Agent Kit is a native Hermes directory plugin. Use Hermes' own plugin manager rather than copying files or running a separate installer. The repository is private, so the current GitHub account must already have access.
+Humanlike Agent Kit is distributed as a Python package with an official Hermes plugin entry point. Hermes discovers it from its own runtime environment. GitHub authentication is not required for the public repository.
+
+The full source repository contains adversarial test strings used by its safety suite. Because Hermes correctly scans every file in a directory-plugin clone, installing the full repository with `hermes plugins install AlekseiUL/humanlike-agent-kit` is not the supported route. Install the reviewed Python package into the Hermes runtime instead.
 
 ### Requirements
 
-- Hermes Agent with the `hermes plugins` command (verified against Hermes v0.21).
-- Git access to `AlekseiUL/humanlike-agent-kit`.
+- Hermes Agent with `hermes plugins` (verified against Hermes v0.21).
+- `uv` and Git access to `AlekseiUL/humanlike-agent-kit`.
 - macOS, Linux, or WSL with Python 3.11 or newer.
 
-### Safe installation
+### Install
 
-Install the plugin disabled, validate it with the real Hermes runtime contracts, and only then enable it:
+Use a reviewed full commit SHA rather than a moving branch:
 
 ```bash
-hermes plugins install AlekseiUL/humanlike-agent-kit --no-enable
-hermes plugins doctor humanlike-agent-kit --ci
+HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
+uv pip install --python "$HERMES_PYTHON" \
+  "git+https://github.com/AlekseiUL/humanlike-agent-kit.git@<40-character-commit-sha>"
 hermes plugins enable humanlike-agent-kit --no-allow-tool-override
+hermes plugins show humanlike-agent-kit
 ```
 
-Start a new Hermes session after enabling the plugin. If a gateway process should use it, restart that gateway only when it is safe to interrupt active work.
+Start a new Hermes session after enabling it. Restart a gateway only when it is safe to interrupt its active work.
 
-The plugin registers four hooks and no tools:
+The starter runtime registers four hooks and no tools:
 
 - `pre_llm_call`
 - `transform_llm_output`
 - `post_llm_call`
 - `on_session_finalize`
 
-Memory is disabled in the bundled starter profile. No model credential is required by the plugin, and its core runtime makes no network calls.
+Memory is off by default. The plugin does not need model credentials, and its core runtime makes no network calls.
 
-### Reproducible pinned installation
-
-For a reviewed deployment, pin the exact 40-character Git commit SHA:
+### Verify
 
 ```bash
-hermes plugins install AlekseiUL/humanlike-agent-kit \
-  --ref <40-character-commit-sha> \
-  --no-enable
-hermes plugins doctor humanlike-agent-kit --ci
-hermes plugins enable humanlike-agent-kit --no-allow-tool-override
-```
-
-A pinned plugin does not move during `hermes plugins update`. Review a newer commit, then reinstall it explicitly with `--force --ref <new-40-character-commit-sha>`.
-
-### Health checks
-
-Validate the installed plugin with Hermes:
-
-```bash
-hermes plugins doctor humanlike-agent-kit --ci
-```
-
-If you also installed the Python package or are working from a source checkout, validate the starter profile and offline behavior suite separately:
-
-```bash
-humanlike doctor --config examples/hermes-humanlike/humanlike.toml
+hermes plugins show humanlike-agent-kit
 humanlike eval
 ```
 
-`hermes plugins doctor` checks Hermes discovery, manifest parsing, import, and registration. It does not install the optional `humanlike` console command. `humanlike doctor` checks one Humanlike profile, and `humanlike eval` runs the bundled offline behavior suite when the Python package is installed.
+`hermes plugins show` confirms that Hermes discovered the installed entry point and reports whether it is enabled. `humanlike eval` loads the installed package and runs its bundled offline behavior suite. For a source checkout, `hermes plugins doctor . --ci` separately validates the directory-plugin adapter.
 
-### Disable, rollback, and remove
+### Roll back or remove
 
-Disable first. This is the fastest rollback and preserves the installed files for inspection:
+Disable first. This is the fastest rollback:
 
 ```bash
 hermes plugins disable humanlike-agent-kit
 ```
 
-Start a new Hermes session after disabling it. Remove the plugin only when it is no longer needed:
+Start a new Hermes session. To remove the installed package as well:
 
 ```bash
-hermes plugins remove humanlike-agent-kit
+HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
+uv pip uninstall --python "$HERMES_PYTHON" humanlike-agent-kit
 ```
 
-The plugin does not alter model credentials or Hermes transcripts. Removing it does not delete data already retained by Hermes, a model provider, logs, or backups.
+The plugin does not change model credentials or delete Hermes transcripts. Uninstalling it does not remove data retained by Hermes, a model provider, logs, or backups.
 
 ## Русский
 
-Humanlike Agent Kit — нативный directory plugin для Hermes. Используйте штатный менеджер плагинов Hermes: отдельный установщик и ручное копирование файлов не нужны. Репозиторий приватный, поэтому у текущего аккаунта GitHub уже должен быть доступ.
+Humanlike Agent Kit устанавливается как Python-пакет с официальной точкой подключения Hermes. Hermes находит плагин в своей рабочей Python-среде. Для публичного репозитория авторизация GitHub не требуется.
+
+В полном репозитории есть провокационные тестовые строки для проверки безопасности. Hermes правильно сканирует все файлы directory-плагина и блокирует такие строки. Поэтому команда `hermes plugins install AlekseiUL/humanlike-agent-kit` для этого репозитория не подходит. Надёжный путь — установить проверенный Python-пакет прямо в среду Hermes.
 
 ### Требования
 
 - Hermes Agent с командой `hermes plugins` (проверено на Hermes v0.21).
-- Доступ к `AlekseiUL/humanlike-agent-kit` через Git.
+- `uv` и доступ к `AlekseiUL/humanlike-agent-kit` через Git.
 - macOS, Linux или WSL и Python 3.11 или новее.
 
-### Безопасная установка
+### Установка
 
-Сначала установите плагин выключенным, проверьте его реальным Hermes Doctor и только потом включите:
+Используйте полный SHA проверенного коммита, а не меняющуюся ветку:
 
 ```bash
-hermes plugins install AlekseiUL/humanlike-agent-kit --no-enable
-hermes plugins doctor humanlike-agent-kit --ci
+HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
+uv pip install --python "$HERMES_PYTHON" \
+  "git+https://github.com/AlekseiUL/humanlike-agent-kit.git@<40-character-commit-sha>"
 hermes plugins enable humanlike-agent-kit --no-allow-tool-override
+hermes plugins show humanlike-agent-kit
 ```
 
-После включения начните новую сессию Hermes. Если плагин нужен работающему gateway, перезапускайте только этот gateway и только когда можно безопасно прервать текущую работу.
+После включения начните новую сессию Hermes. Gateway перезапускайте только тогда, когда можно безопасно прервать его текущую работу.
 
-Плагин регистрирует четыре hook и не добавляет инструменты:
+Стартовый режим регистрирует четыре hook и не добавляет инструменты:
 
 - `pre_llm_call`
 - `transform_llm_output`
 - `post_llm_call`
 - `on_session_finalize`
 
-Во встроенном стартовом профиле память выключена. Плагину не нужны ключи моделей, а его основная логика не обращается к сети.
+Память по умолчанию выключена. Плагину не нужны ключи моделей, а его основная логика не обращается к сети.
 
-### Воспроизводимая установка
-
-Для контролируемой установки закрепите полный 40-символьный SHA проверенного коммита:
+### Проверка
 
 ```bash
-hermes plugins install AlekseiUL/humanlike-agent-kit \
-  --ref <40-character-commit-sha> \
-  --no-enable
-hermes plugins doctor humanlike-agent-kit --ci
-hermes plugins enable humanlike-agent-kit --no-allow-tool-override
-```
-
-Закреплённый плагин не обновляется командой `hermes plugins update`. Сначала проверьте новый коммит, затем явно переустановите его с `--force --ref <new-40-character-commit-sha>`.
-
-### Проверка плагина
-
-```bash
-hermes plugins doctor humanlike-agent-kit --ci
-```
-
-Если вы также установили Python-пакет или работаете из клона репозитория, отдельно проверьте стартовый профиль и офлайн-набор тестов:
-
-```bash
-humanlike doctor --config examples/hermes-humanlike/humanlike.toml
+hermes plugins show humanlike-agent-kit
 humanlike eval
 ```
 
-`hermes plugins doctor` проверяет обнаружение, manifest, импорт и регистрацию в Hermes. Он не устанавливает дополнительную консольную команду `humanlike`. `humanlike doctor` проверяет профиль Humanlike, а `humanlike eval` запускает встроенные тесты, когда Python-пакет установлен.
+`hermes plugins show` подтверждает, что Hermes обнаружил установленную точку подключения, и показывает её состояние. `humanlike eval` загружает установленный пакет и запускает встроенный офлайн-набор поведенческих проверок. В клоне исходников команда `hermes plugins doctor . --ci` отдельно проверяет directory-адаптер.
 
-### Отключение и удаление
+### Откат и удаление
 
-Сначала отключите плагин. Это быстрый rollback без удаления файлов:
+Сначала отключите плагин — это самый быстрый откат:
 
 ```bash
 hermes plugins disable humanlike-agent-kit
 ```
 
-После отключения начните новую сессию Hermes. Если плагин больше не нужен, удалите его штатной командой:
+После этого начните новую сессию Hermes. Для полного удаления пакета:
 
 ```bash
-hermes plugins remove humanlike-agent-kit
+HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
+uv pip uninstall --python "$HERMES_PYTHON" humanlike-agent-kit
 ```
 
-Плагин не меняет ключи моделей и историю Hermes. Его удаление не стирает данные, которые уже сохранили Hermes, провайдер модели, логи или резервные копии.
+Плагин не меняет ключи моделей и не удаляет историю Hermes. Удаление пакета не стирает данные, уже сохранённые Hermes, провайдером модели, логами или резервными копиями.

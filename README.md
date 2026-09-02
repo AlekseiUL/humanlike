@@ -4,7 +4,7 @@
 
 [English](#english) · [Русский](#русский) · [Documentation](#documentation) · [License](#license)
 
-> **Status: private beta (`0.1.1`), licensed under MIT.** Repository access is restricted, and the API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
+> **Status: public beta (`0.1.1`), licensed under MIT.** The API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,7 @@ Humanlike Agent Kit is not a model, chatbot UI, autonomous agent host, network s
 
 ### Quickstart
 
-Requirements: access to this private repository and Python 3.11 or newer. The hardened profile loader and SQLite memory backend require a local POSIX filesystem; native Windows is not supported for those components in `0.1.x`.
+Requirements: Git and Python 3.11 or newer. The hardened profile loader and SQLite memory backend require a local POSIX filesystem; native Windows is not supported for those components in `0.1.x`.
 
 ```bash
 git clone https://github.com/AlekseiUL/humanlike-agent-kit.git
@@ -91,15 +91,17 @@ The host calls its model and reports bounded outcome metadata through `runtime.o
 
 ### Hermes integration
 
-Install through Hermes' native plugin manager. It keeps the plugin disabled until the runtime contract passes:
+Install the package into Hermes' own Python environment, validate it, and then enable its official plugin entry point. Pin a reviewed commit in production:
 
 ```bash
-hermes plugins install AlekseiUL/humanlike-agent-kit --no-enable
-hermes plugins doctor humanlike-agent-kit --ci
+HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
+uv pip install --python "$HERMES_PYTHON" \
+  "git+https://github.com/AlekseiUL/humanlike-agent-kit.git@<40-character-commit-sha>"
 hermes plugins enable humanlike-agent-kit --no-allow-tool-override
+hermes plugins show humanlike-agent-kit
 ```
 
-Start a new Hermes session after enabling it. See [Hermes installation](docs/HERMES_INSTALL.md) for pinned installs, health checks, rollback, and removal. Compatibility is documented in [Compatibility](docs/COMPATIBILITY.md).
+Start a new Hermes session after enabling it. The full source tree contains adversarial safety fixtures, so direct directory-plugin installation is intentionally not used. See [Hermes installation](docs/HERMES_INSTALL.md) for details, health checks, rollback, and removal. Compatibility is documented in [Compatibility](docs/COMPATIBILITY.md).
 
 Memory is disabled by default. Enabling it requires `memory_enabled = true`, `acknowledge_host_context_persistence = true`, and a relative `state_path`. The runtime cannot delete copies already retained by a host or model provider.
 
@@ -118,7 +120,7 @@ The installed runtime has no third-party Python dependencies. Development, build
 
 ## Русский
 
-Humanlike Agent Kit — приватная бета-библиотека под лицензией MIT. Это детерминированный поведенческий слой для ИИ-агентов: он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
+Humanlike Agent Kit — публичная бета-библиотека под лицензией MIT. Это детерминированный поведенческий слой для ИИ-агентов: он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
 
 ### Что умеет
 
@@ -135,7 +137,7 @@ Humanlike Agent Kit — приватная бета-библиотека под 
 
 ### Быстрый старт
 
-Нужны доступ к приватному репозиторию и Python 3.11 или новее. Для защищённой загрузки профиля и SQLite-памяти требуется локальная POSIX-файловая система; нативный Windows для этих компонентов в ветке `0.1.x` не поддерживается.
+Нужны Git и Python 3.11 или новее. Для защищённой загрузки профиля и SQLite-памяти требуется локальная POSIX-файловая система; нативный Windows для этих компонентов в ветке `0.1.x` не поддерживается.
 
 ```bash
 git clone https://github.com/AlekseiUL/humanlike-agent-kit.git
@@ -167,15 +169,17 @@ humanlike doctor --config examples/hermes-humanlike/humanlike.toml
 
 ### Интеграция и память
 
-Устанавливайте плагин через штатный менеджер Hermes: сначала выключенным, затем проверка и включение.
+Установите пакет в рабочую Python-среду Hermes, проверьте его и затем включите официальную точку подключения. Для рабочего использования закрепите проверенный коммит:
 
 ```bash
-hermes plugins install AlekseiUL/humanlike-agent-kit --no-enable
-hermes plugins doctor humanlike-agent-kit --ci
+HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
+uv pip install --python "$HERMES_PYTHON" \
+  "git+https://github.com/AlekseiUL/humanlike-agent-kit.git@<40-character-commit-sha>"
 hermes plugins enable humanlike-agent-kit --no-allow-tool-override
+hermes plugins show humanlike-agent-kit
 ```
 
-После включения начните новую сессию Hermes. Закрепление версии по commit SHA, проверка, rollback и удаление описаны в [инструкции по установке](docs/HERMES_INSTALL.md).
+После включения начните новую сессию Hermes. В исходниках есть провокационные данные для тестов безопасности, поэтому прямая установка всего репозитория как directory-плагина намеренно не используется. Проверка, откат и удаление описаны в [инструкции по установке](docs/HERMES_INSTALL.md).
 
 Память по умолчанию выключена. Для включения нужны `memory_enabled = true`, `acknowledge_host_context_persistence = true` и относительный `state_path`. Это осознанное ограничение: библиотека не управляет копиями данных в основной системе или у провайдера модели.
 
