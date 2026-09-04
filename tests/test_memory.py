@@ -23,6 +23,10 @@ from humanlike_agent.memory import (
     SQLiteMemoryLedger,
 )
 
+pytestmark = pytest.mark.skipif(
+    os.name == "nt", reason="persistent SQLite memory is currently POSIX-only"
+)
+
 _NOW = datetime(2026, 9, 1, 12, 0, tzinfo=UTC)
 _DIGEST = hashlib.sha256(b"synthetic evidence").hexdigest()
 _CRASH_EXIT = 73

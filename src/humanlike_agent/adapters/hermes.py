@@ -77,6 +77,14 @@ def _relative_profile_path(value: object, root: Path, field: str) -> Path:
     return candidate
 
 
+def _is_link_like(details: os.stat_result) -> bool:
+    """Reject POSIX links and Windows reparse points (junctions included)."""
+
+    return stat.S_ISLNK(details.st_mode) or bool(
+        getattr(details, "st_file_attributes", 0) & 0x400
+    )
+
+
 def _validate_root(root: Path) -> None:
     current = Path(root.anchor)
     details: os.stat_result | None = None
@@ -86,13 +94,15 @@ def _validate_root(root: Path) -> None:
             details = current.lstat()
         except OSError as error:
             raise ValueError("profile root is not accessible") from error
-        if stat.S_ISLNK(details.st_mode):
+        if _is_link_like(details):
             raise ValueError("profile root ancestry must not contain symlinks")
     if details is None:
         details = root.lstat()
     if not stat.S_ISDIR(details.st_mode):
         raise ValueError("profile root must be a directory")
-    if details.st_uid != os.geteuid() or stat.S_IMODE(details.st_mode) & 0o022:
+    if os.name == "posix" and (
+        details.st_uid != os.geteuid() or stat.S_IMODE(details.st_mode) & 0o022
+    ):
         raise ValueError("profile root permissions are unsafe")
 
 
@@ -125,45 +135,52 @@ def _secure_config_read(
             before = current.lstat()
         except OSError as error:
             raise ValueError("config path is not accessible") from error
-        if stat.S_ISLNK(before.st_mode):
+        if _is_link_like(before):
             raise ValueError("config path must not contain symlinks")
         if index < len(relative.parts) - 1 and not stat.S_ISDIR(before.st_mode):
             raise ValueError("config parent must be a directory")
     if before is None or not stat.S_ISREG(before.st_mode):
         raise ValueError("config path must name a regular file")
-    if (
-        before.st_uid != os.geteuid()
-        or before.st_nlink != 1
-        or stat.S_IMODE(before.st_mode) & 0o022
+    if before.st_nlink != 1 or (
+        os.name == "posix"
+        and (before.st_uid != os.geteuid() or stat.S_IMODE(before.st_mode) & 0o022)
     ):
         raise ValueError("config file permissions are unsafe")
     if before.st_size > _MAX_CONFIG_BYTES:
         raise ValueError("config file exceeds the size limit")
 
-    flags = os.O_RDONLY
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
     for name in ("O_CLOEXEC", "O_NONBLOCK", "O_NOFOLLOW"):
         flags |= getattr(os, name, 0)
     directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
     directory_flags |= getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
-    descriptor = os.open(root, directory_flags)
-    try:
-        for part in relative.parts[:-1]:
-            next_descriptor = os.open(part, directory_flags, dir_fd=descriptor)
+    if os.name == "nt":
+        file_descriptor = os.open(candidate, flags)
+    else:
+        descriptor = os.open(root, directory_flags)
+        try:
+            for part in relative.parts[:-1]:
+                next_descriptor = os.open(part, directory_flags, dir_fd=descriptor)
+                os.close(descriptor)
+                descriptor = next_descriptor
+            file_descriptor = os.open(relative.parts[-1], flags, dir_fd=descriptor)
+        except BaseException:
             os.close(descriptor)
-            descriptor = next_descriptor
-        file_descriptor = os.open(relative.parts[-1], flags, dir_fd=descriptor)
-    except BaseException:
+            raise
         os.close(descriptor)
-        raise
-    os.close(descriptor)
     try:
         opened = os.fstat(file_descriptor)
         if (
             not stat.S_ISREG(opened.st_mode)
             or (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino)
-            or opened.st_uid != os.geteuid()
             or opened.st_nlink != 1
-            or stat.S_IMODE(opened.st_mode) & 0o022
+            or (
+                os.name == "posix"
+                and (
+                    opened.st_uid != os.geteuid()
+                    or stat.S_IMODE(opened.st_mode) & 0o022
+                )
+            )
         ):
             raise ValueError("config file changed or is unsafe")
         data = os.read(file_descriptor, _MAX_CONFIG_BYTES + 1)
@@ -187,11 +204,13 @@ def _check_existing_state_components(root: Path, state_path: Path) -> None:
             return
         except OSError as error:
             raise ValueError("state path is not safely accessible") from error
-        if stat.S_ISLNK(details.st_mode):
+        if _is_link_like(details):
             raise ValueError("state path must not contain symlinks")
         if index < len(relative.parts) - 1 and not stat.S_ISDIR(details.st_mode):
             raise ValueError("state parent must be a directory")
-        if details.st_uid != os.geteuid() or stat.S_IMODE(details.st_mode) & 0o022:
+        if os.name == "posix" and (
+            details.st_uid != os.geteuid() or stat.S_IMODE(details.st_mode) & 0o022
+        ):
             raise ValueError("state path permissions are unsafe")
 
 

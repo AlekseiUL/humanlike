@@ -6,8 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-04
+
 ### Added
 
+- Added native Windows support for the core runtime, CLI, read-only profile and foundation-pack loaders, and the memory-off Hermes plugin.
+- Added a real `windows-latest` wheel-install, CLI, eval, and doctor gate to CI.
+- Added bilingual PowerShell installation instructions and the supplied Humanlike project cover.
 - Added a bilingual Hermes wheel-entry-point installation path with runtime validation, commit pinning, rollback, and removal.
 - Added a memory-off starter runtime that Hermes discovers from the installed Python package.
 
@@ -15,6 +20,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 - Prepared the repository documentation for public beta availability under the MIT License.
 - Shortened the public product and repository name to **Humanlike** while keeping the `humanlike-agent-kit` package and plugin identifiers stable for compatibility.
+
+### Security
+
+- Windows path loaders fail closed on traversal, symlinks, junctions, and other reparse points. The optional SQLite memory ledger remains POSIX-only rather than weakening its locking and ownership contract.
 
 ## [0.1.1] - 2026-09-01
 

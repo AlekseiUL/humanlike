@@ -27,7 +27,7 @@ Maintainers should acknowledge a report before discussing coordinated disclosure
 ## Security assumptions
 
 - The process owner, plugin directory, profile directory, and installed Python interpreter are trusted.
-- The hardened profile loader and SQLite memory ledger require a local POSIX filesystem with owner and mode semantics.
+- The SQLite memory ledger requires a local POSIX filesystem with owner and mode semantics. The native Windows read-only loaders reject traversal and reparse-point indirection, but Windows ACL ownership enforcement is delegated to the trusted host installation boundary.
 - The host is responsible for model-provider credentials, network controls, tool permissions, transcript retention, and process isolation.
 - The runtime treats user text, recalled memory, creative-pack data, and host metadata as potentially malformed.
 - A compromised operating-system account or privileged local attacker is outside the protection boundary.

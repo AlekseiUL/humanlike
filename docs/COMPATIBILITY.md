@@ -11,6 +11,7 @@ This document describes the verified code contract for beta `0.1.x`. It is delib
 | Model providers | Host-neutral | Core makes no LLM or network call |
 | Languages | RU and EN routing rules | Other locales use the same deterministic API but are not a declared routing-quality target |
 | Packaging | Source tree, editable install, wheel/sdist design | Build tooling is a development extra |
+| Native Windows | Core, CLI, profile loader, memory-off Hermes plugin | Optional SQLite memory ledger is not enabled on Windows in `0.1.x` |
 | Persistent memory | POSIX local filesystem only | Requires `fcntl`, owner/mode semantics, local locking, and atomic replacement |
 
 ## Operating systems
@@ -23,9 +24,11 @@ An intended environment is not automatically a certified platform. Run the full 
 
 ### Native Windows
 
-Native Windows is **not supported for the complete `0.1.0` stack**. The pure routing API and `humanlike route` may work, but the hardened profile loader and memory backend rely on POSIX ownership, mode, descriptor, and file-locking behavior. Do not interpret a successful route command as Hermes or memory compatibility.
+Native Windows supports the standard-library core, `humanlike route`, `humanlike eval`, `humanlike doctor`, read-only persona/config/foundation loading, and the wheel-installed Hermes plugin with memory disabled. Windows loaders reject lexical traversal, symlinks, junctions and other reparse points, enforce file bounds, and compare file identity before and after opening.
 
-WSL may provide the required POSIX interfaces, but it has not been declared a verified target. If evaluated, keep the repository and state on the Linux filesystem rather than a mounted Windows or synchronized directory.
+The optional `SQLiteMemoryLedger` remains unavailable on native Windows in `0.1.x`. It depends on POSIX owner/mode checks, descriptor-relative traversal, `flock`, and directory durability semantics. Enabling `memory_enabled = true` on Windows fails closed instead of silently using weaker storage guarantees.
+
+WSL2 provides the POSIX interfaces required by the complete stack. Keep memory state on the WSL Linux filesystem rather than a mounted Windows or synchronized directory.
 
 ## Filesystems
 

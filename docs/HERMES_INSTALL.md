@@ -12,7 +12,7 @@ The full source repository contains adversarial test strings used by its safety 
 
 - Hermes Agent with `hermes plugins` (verified against Hermes v0.21).
 - `uv` and Git access to `AlekseiUL/humanlike`.
-- macOS, Linux, or WSL with Python 3.11 or newer.
+- macOS, Linux, WSL2, or native Windows with Python 3.11 or newer. Native Windows uses the memory-off plugin mode in `0.1.x`.
 
 ### Install
 
@@ -27,6 +27,18 @@ hermes plugins show humanlike-agent-kit
 ```
 
 Start a new Hermes session after enabling it. Restart a gateway only when it is safe to interrupt its active work.
+
+Native Windows (PowerShell):
+
+```powershell
+$HermesPython = Join-Path $env:LOCALAPPDATA "hermes\hermes-agent\.venv\Scripts\python.exe"
+uv pip install --python $HermesPython `
+  "git+https://github.com/AlekseiUL/humanlike.git@<40-character-commit-sha>"
+hermes plugins enable humanlike-agent-kit --no-allow-tool-override
+hermes plugins show humanlike-agent-kit
+```
+
+The optional Humanlike SQLite memory ledger remains disabled on native Windows in `0.1.x`. WSL2 is the supported Windows route when that ledger is required.
 
 The starter runtime registers four hooks and no tools:
 
@@ -73,7 +85,7 @@ Humanlike устанавливается как Python-пакет с офици�
 
 - Hermes Agent с командой `hermes plugins` (проверено на Hermes v0.21).
 - `uv` и доступ к `AlekseiUL/humanlike` через Git.
-- macOS, Linux или WSL и Python 3.11 или новее.
+- macOS, Linux, WSL2 или нативный Windows и Python 3.11 или новее. В нативном Windows ветка `0.1.x` использует плагин с выключенной памятью.
 
 ### Установка
 
@@ -88,6 +100,18 @@ hermes plugins show humanlike-agent-kit
 ```
 
 После включения начните новую сессию Hermes. Gateway перезапускайте только тогда, когда можно безопасно прервать его текущую работу.
+
+Нативный Windows (PowerShell):
+
+```powershell
+$HermesPython = Join-Path $env:LOCALAPPDATA "hermes\hermes-agent\.venv\Scripts\python.exe"
+uv pip install --python $HermesPython `
+  "git+https://github.com/AlekseiUL/humanlike.git@<40-character-commit-sha>"
+hermes plugins enable humanlike-agent-kit --no-allow-tool-override
+hermes plugins show humanlike-agent-kit
+```
+
+Опциональная SQLite-память Humanlike в нативном Windows для ветки `0.1.x` остаётся выключенной. Если она нужна, используйте WSL2.
 
 Стартовый режим регистрирует четыре hook и не добавляет инструменты:
 

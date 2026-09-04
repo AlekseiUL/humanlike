@@ -237,6 +237,7 @@ def test_sdist_is_reproducible_owner_neutral_and_complete(tmp_path: Path) -> Non
         "/__init__.py",
         "/build_backend.py",
         "/docs/PRIVACY.md",
+        "/docs/assets/humanlike-hero.jpg",
         "/evals/cases/en.jsonl",
         "/examples/hermes-humanlike/humanlike.toml",
         "/packs/foundation/manifest.json",

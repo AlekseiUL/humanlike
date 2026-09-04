@@ -351,11 +351,13 @@ def test_profile_config_rejects_symlink_and_group_writable_files(tmp_path: Path)
     with pytest.raises(ValueError):
         HermesAdapterConfig.load(link, allowed_root=profile_root)
 
-    config_path.chmod(0o666)
-    with pytest.raises(ValueError):
-        HermesAdapterConfig.load(config_path, allowed_root=profile_root)
+    if os.name == "posix":
+        config_path.chmod(0o666)
+        with pytest.raises(ValueError):
+            HermesAdapterConfig.load(config_path, allowed_root=profile_root)
 
 
+@pytest.mark.skipif(os.name == "nt", reason="persistent SQLite memory is POSIX-only")
 def test_memory_state_is_confined_and_absent_state_stays_absent_on_read(
     tmp_path: Path,
 ) -> None:

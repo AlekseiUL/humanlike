@@ -1,6 +1,6 @@
 manifest_version: 1
 name: humanlike-agent-kit
-version: "0.1.1"
+version: "0.1.2"
 description: Provider-neutral humanlike behavior controls for Hermes.
 author: Aleksei Ulyanov
 kind: standalone
