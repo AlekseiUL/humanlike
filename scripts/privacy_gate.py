@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import re
 import subprocess
@@ -45,6 +46,11 @@ _FORBIDDEN_SUFFIXES = frozenset(
     }
 )
 _MAX_SCANNED_BYTES = 8 * 1_024 * 1_024
+_APPROVED_BINARY_ASSETS = {
+    "docs/assets/humanlike-hero.jpg": (
+        "d73b67fc9565409eada12c344694c95149f8df8c6277b4b2fbe64c5121636814"
+    ),
+}
 
 
 def _private_identifiers() -> tuple[str, ...]:
@@ -128,6 +134,14 @@ def _path_rules(path: PurePosixPath) -> list[str]:
 def _content_findings(data: bytes, *, scope: str, path: str) -> list[Finding]:
     if len(data) > _MAX_SCANNED_BYTES:
         return [Finding(scope, path, 0, "oversized-artifact")]
+    approved_digest = _APPROVED_BINARY_ASSETS.get(path)
+    if (
+        approved_digest is not None
+        and data.startswith(b"\xff\xd8\xff")
+        and data.endswith(b"\xff\xd9")
+        and hashlib.sha256(data).hexdigest() == approved_digest
+    ):
+        return []
     if b"\0" in data:
         return [Finding(scope, path, 0, "binary-artifact")]
     try:

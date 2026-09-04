@@ -11,6 +11,7 @@ include plugin.yaml
 include uv.lock
 recursive-include .github *.yml
 recursive-include docs *.md
+recursive-include docs/assets *.jpg
 recursive-include evals *.jsonl
 recursive-include examples *.md *.toml
 recursive-include packs *.json

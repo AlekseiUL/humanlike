@@ -29,7 +29,7 @@ def test_package_version_has_one_setuptools_source() -> None:
     assert pyproject["tool"]["setuptools"]["dynamic"]["version"] == {
         "attr": "humanlike_agent.__version__"
     }
-    assert humanlike_agent.__version__ == "0.1.1"
+    assert humanlike_agent.__version__ == "0.1.2"
 
 
 def test_mode_values_are_stable() -> None:

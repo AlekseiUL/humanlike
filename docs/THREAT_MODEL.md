@@ -93,7 +93,7 @@ They may read profiles, in-memory context, and plaintext memory state. Preventin
 - physical attacks, forensic recovery, filesystem snapshots, and backup deletion;
 - denial of service before input reaches the runtime;
 - cryptographic signing of plugin releases or creative packs;
-- native Windows filesystem security for the hardened loader or memory backend;
+- native Windows ACL ownership enforcement and a native Windows persistent-memory backend;
 - claims that deterministic behavioral guidance makes a model human, conscious, or emotionally safe.
 
 ## Residual-risk decisions

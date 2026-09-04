@@ -22,6 +22,8 @@ jobs:
             python: "3.14"
           - os: macos-latest
             python: "3.13"
+          - os: windows-latest
+            python: "3.13"
 
     steps:
       - name: Check out complete branch history
@@ -58,9 +60,20 @@ jobs:
         run: uv build --no-build-isolation
 
       - name: Smoke-test the installed wheel
+        if: runner.os != 'Windows'
         run: |
           python -m venv .wheel-smoke
           uv pip install --python .wheel-smoke/bin/python dist/*.whl
           .wheel-smoke/bin/humanlike route --locale en --text "Rewrite this paragraph in a neutral tone."
           .wheel-smoke/bin/humanlike eval
           .wheel-smoke/bin/humanlike doctor --config examples/hermes-humanlike/humanlike.toml
+
+      - name: Smoke-test the installed wheel on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          python -m venv .wheel-smoke
+          uv pip install --python .wheel-smoke\Scripts\python.exe (Get-ChildItem dist\*.whl | Select-Object -First 1).FullName
+          .\.wheel-smoke\Scripts\humanlike.exe route --locale en --text "Rewrite this paragraph in a neutral tone."
+          .\.wheel-smoke\Scripts\humanlike.exe eval
+          .\.wheel-smoke\Scripts\humanlike.exe doctor --config examples\hermes-humanlike\humanlike.toml

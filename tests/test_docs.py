@@ -85,6 +85,8 @@ def test_readme_contains_bilingual_description_creator_links_and_attribution() -
     assert "https://t.me/+eH-qNIDmud8zNDZi" in readme
     assert "https://t.me/tribute/app?startapp=sJyg" in readme
     assert "ACKNOWLEDGEMENTS.md" in readme
+    assert "![Humanlike project cover](docs/assets/humanlike-hero.jpg)" in readme
+    assert (REPOSITORY_ROOT / "docs" / "assets" / "humanlike-hero.jpg").is_file()
 
 
 def test_documented_platform_and_hermes_compatibility_are_explicit() -> None:
@@ -93,8 +95,9 @@ def test_documented_platform_and_hermes_compatibility_are_explicit() -> None:
     )
 
     assert re.search(r"Hermes\s+`?v0\.21", compatibility)
-    assert "Native Windows is **not supported" in compatibility
-    assert "WSL" in compatibility
+    assert "Native Windows supports" in compatibility
+    assert "SQLiteMemoryLedger` remains unavailable on native Windows" in compatibility
+    assert "WSL2" in compatibility
 
     design = (
         REPOSITORY_ROOT / "docs" / "plans" / "2026-09-01-humanlike-agent-kit-design.md"
@@ -129,6 +132,8 @@ def test_hermes_wheel_install_uses_runtime_python_and_entrypoint_validation() ->
     assert "hermes plugins doctor humanlike-agent-kit --ci" not in install
     assert "humanlike install" not in install
     assert "humanlike uninstall" not in install
+    assert ".venv\\Scripts\\python.exe" in install
+    assert "native Windows" in install
 
 
 def test_ci_uses_the_locked_build_toolchain_and_complete_history() -> None:
@@ -140,6 +145,8 @@ def test_ci_uses_the_locked_build_toolchain_and_complete_history() -> None:
     assert "uv sync --locked --all-extras" in workflow
     assert "version: \"0.12.8\"" in workflow
     assert "uv build --no-build-isolation" in workflow
+    assert "windows-latest" in workflow
+    assert ".wheel-smoke\\Scripts\\humanlike.exe eval" in workflow
     assert "setuptools==84.0.0" in (
         REPOSITORY_ROOT / "pyproject.toml"
     ).read_text(encoding="utf-8")

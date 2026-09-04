@@ -297,6 +297,14 @@ def _absolute(path: Path) -> Path:
     return Path(os.path.abspath(os.fspath(path)))
 
 
+def _is_link_like(details: os.stat_result) -> bool:
+    """Reject POSIX links and Windows reparse points (junctions included)."""
+
+    return stat.S_ISLNK(details.st_mode) or bool(
+        getattr(details, "st_file_attributes", 0) & 0x400
+    )
+
+
 def _reject_traversal(path: Path) -> None:
     if ".." in path.parts:
         raise ValueError("persona path traversal is not allowed")
@@ -332,7 +340,7 @@ def _lstat_components(root: Path, relative_parts: tuple[str, ...]) -> os.stat_re
             root_stat = current.lstat()
         except OSError as error:
             raise ValueError("allowed root is not an accessible directory") from error
-        if stat.S_ISLNK(root_stat.st_mode):
+        if _is_link_like(root_stat):
             raise ValueError("allowed root ancestry must not contain a symlink")
     if root_stat is None:
         root_stat = root.lstat()
@@ -347,7 +355,7 @@ def _lstat_components(root: Path, relative_parts: tuple[str, ...]) -> os.stat_re
             current_stat = current.lstat()
         except OSError as error:
             raise ValueError("persona path is not an accessible regular file") from error
-        if stat.S_ISLNK(current_stat.st_mode):
+        if _is_link_like(current_stat):
             raise ValueError("persona path must not contain a symlink")
         if index < len(relative_parts) - 1 and not stat.S_ISDIR(current_stat.st_mode):
             raise ValueError("persona parent path must be a directory")

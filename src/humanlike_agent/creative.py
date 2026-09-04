@@ -637,6 +637,93 @@ def _close_after_failure(descriptor: int) -> None:
         pass
 
 
+def _is_link_like(details: os.stat_result) -> bool:
+    return stat.S_ISLNK(details.st_mode) or bool(
+        getattr(details, "st_file_attributes", 0) & 0x400
+    )
+
+
+def _windows_pack_directory(
+    path: os.PathLike[str] | str,
+    allowed_root: os.PathLike[str] | str,
+) -> Path:
+    """Validate a Windows pack path without following reparse points."""
+
+    raw_root = os.fspath(allowed_root)
+    raw_pack = os.fspath(path)
+    if not isinstance(raw_root, str) or not isinstance(raw_pack, str):
+        raise TypeError("pack path and allowed root must be text paths")
+    if "\x00" in raw_root or "\x00" in raw_pack:
+        raise ValueError("pack path and allowed root must not contain NUL")
+    if ".." in Path(raw_pack).parts:
+        raise ValueError("pack path contains traversal")
+    root = Path(os.path.abspath(raw_root))
+    pack = Path(os.path.abspath(raw_pack if os.path.isabs(raw_pack) else root / raw_pack))
+    try:
+        relative = pack.relative_to(root)
+    except ValueError as error:
+        raise ValueError("pack path is outside allowed root") from error
+    current = Path(root.anchor)
+    for part in root.parts[1:]:
+        current /= part
+        details = current.lstat()
+        if _is_link_like(details):
+            raise ValueError("allowed root ancestry must not contain reparse points")
+    current = root
+    for part in relative.parts:
+        current /= part
+        details = current.lstat()
+        if _is_link_like(details):
+            raise ValueError("pack path must not contain reparse points")
+    if not current.is_dir():
+        raise ValueError("pack path is missing or not a directory")
+    return current
+
+
+def _windows_read_regular_file(
+    directory: Path,
+    name: str,
+    limit: int,
+    *,
+    require_single_link: bool,
+) -> bytes:
+    candidate = directory / name
+    before = candidate.lstat()
+    if _is_link_like(before) or not stat.S_ISREG(before.st_mode):
+        raise ValueError(f"pack file {name} must be a regular file, not a reparse point")
+    if require_single_link and before.st_nlink != 1:
+        raise ValueError(f"pack file {name} must be a single-link regular file")
+    if before.st_size < 1 or before.st_size > limit:
+        raise ValueError(f"pack file {name} exceeds its size limit")
+    descriptor = os.open(candidate, os.O_RDONLY | getattr(os, "O_BINARY", 0))
+    try:
+        opened = os.fstat(descriptor)
+        if not stat.S_ISREG(opened.st_mode):
+            raise ValueError(f"pack file {name} must be a regular file")
+        if (before.st_dev, before.st_ino) != (opened.st_dev, opened.st_ino):
+            raise ValueError(f"pack file {name} changed while opening")
+        chunks: list[bytes] = []
+        remaining = opened.st_size
+        while remaining:
+            chunk = os.read(descriptor, min(remaining, 64 * 1024))
+            if not chunk:
+                raise ValueError(f"pack file {name} changed while reading")
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        if os.read(descriptor, 1):
+            raise ValueError(f"pack file {name} exceeds its declared size")
+        after_fd = os.fstat(descriptor)
+        after_path = candidate.lstat()
+        stable = ("st_dev", "st_ino", "st_size", "st_mtime_ns")
+        if _is_link_like(after_path) or any(
+            getattr(opened, field) != getattr(after_fd, field) for field in stable
+        ) or any(getattr(opened, field) != getattr(after_path, field) for field in stable):
+            raise ValueError(f"pack file {name} changed while reading")
+        return b"".join(chunks)
+    finally:
+        os.close(descriptor)
+
+
 def _open_absolute_directory(path: str) -> int:
     flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_CLOEXEC", 0)
     flags |= getattr(os, "O_NOFOLLOW", 0)
@@ -905,28 +992,45 @@ def _load_foundation_pack(
 ) -> FoundationPack:
 
     pinned_manifest = _sha256(expected_manifest_digest, "expected manifest digest")
-    directory_fd = _open_pack_directory(path, allowed_root)
-    try:
-        manifest_raw = _read_regular_file(
-            directory_fd,
-            "manifest.json",
-            _MAX_MANIFEST_BYTES,
-            require_single_link=require_single_link,
-        )
+    if os.name == "nt":
+        directory = _windows_pack_directory(path, allowed_root)
+
+        def read_file(name: str, limit: int) -> bytes:
+            return _windows_read_regular_file(
+                directory,
+                name,
+                limit,
+                require_single_link=require_single_link,
+            )
+
+        manifest_raw = read_file("manifest.json", _MAX_MANIFEST_BYTES)
         if hashlib.sha256(manifest_raw).hexdigest() != pinned_manifest:
             raise ValueError("manifest digest does not match the expected trust anchor")
         pack_id, version, descriptors = _manifest(manifest_raw)
-        raw_files = {
-            name: _read_regular_file(
+        raw_files = {name: read_file(name, _MAX_PACK_FILE_BYTES) for name in _PACK_FILES}
+    else:
+        directory_fd = _open_pack_directory(path, allowed_root)
+        try:
+            manifest_raw = _read_regular_file(
                 directory_fd,
-                name,
-                _MAX_PACK_FILE_BYTES,
+                "manifest.json",
+                _MAX_MANIFEST_BYTES,
                 require_single_link=require_single_link,
             )
-            for name in _PACK_FILES
-        }
-    finally:
-        os.close(directory_fd)
+            if hashlib.sha256(manifest_raw).hexdigest() != pinned_manifest:
+                raise ValueError("manifest digest does not match the expected trust anchor")
+            pack_id, version, descriptors = _manifest(manifest_raw)
+            raw_files = {
+                name: _read_regular_file(
+                    directory_fd,
+                    name,
+                    _MAX_PACK_FILE_BYTES,
+                    require_single_link=require_single_link,
+                )
+                for name in _PACK_FILES
+            }
+        finally:
+            os.close(directory_fd)
     for name, raw in raw_files.items():
         declared_bytes, declared_digest = descriptors[name]
         if len(raw) != declared_bytes:

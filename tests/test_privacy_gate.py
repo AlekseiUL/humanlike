@@ -77,6 +77,22 @@ def test_privacy_gate_fails_closed_for_opaque_binary_files(
     assert "binary-artifact" in result.stdout.lower()
 
 
+def test_privacy_gate_accepts_only_the_reviewed_hero_asset(tmp_path: Path) -> None:
+    target = tmp_path / "docs" / "assets" / "humanlike-hero.jpg"
+    target.parent.mkdir(parents=True)
+    target.write_bytes(
+        (REPOSITORY_ROOT / "docs" / "assets" / "humanlike-hero.jpg").read_bytes()
+    )
+
+    accepted = _run_gate(tmp_path)
+    assert accepted.returncode == 0, accepted.stdout
+
+    target.write_bytes(target.read_bytes() + b"changed")
+    rejected = _run_gate(tmp_path)
+    assert rejected.returncode == 1
+    assert "binary-artifact" in rejected.stdout.lower()
+
+
 def test_privacy_gate_rejects_forbidden_artifacts_and_symlinks(tmp_path: Path) -> None:
     (tmp_path / ".env").write_text("SAFE_PLACEHOLDER=1\n", encoding="utf-8")
     target = tmp_path / "target.txt"
