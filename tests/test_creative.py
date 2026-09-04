@@ -376,7 +376,11 @@ def test_loader_rejects_traversal_and_symlinks(tmp_path: Path) -> None:
 def test_bundled_pack_accepts_installer_hardlinks_but_external_loader_stays_strict(
     tmp_path: Path,
 ) -> None:
-    source = Path(creative_module.__file__).parent / "data" / "foundation"
+    installed_source = Path(creative_module.__file__).parent / "data" / "foundation"
+    source = tmp_path / "same-volume-source"
+    source.mkdir()
+    for name in ("manifest.json", "rubric.json", "anti-patterns.json"):
+        (source / name).write_bytes((installed_source / name).read_bytes())
     linked_pack = tmp_path / "linked-bundled-pack"
     linked_pack.mkdir()
     for name in ("manifest.json", "rubric.json", "anti-patterns.json"):

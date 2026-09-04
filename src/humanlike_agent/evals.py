@@ -17,7 +17,7 @@ from typing import Any
 
 from .creative import FoundationPack, load_bundled_foundation
 from .drift import BehaviorProbe
-from .memory import Evidence, MemoryKind, MemoryRecord, RecallQuery, SQLiteMemoryLedger
+from .memory import Evidence, MemoryKind, MemoryRecord, RecallHit, RecallQuery, SQLiteMemoryLedger
 from .models import MemoryScope, Mode, SessionRef, SocialMove, TurnInput, TurnOutcome
 from .persona import Persona, PersonaSpine
 from .router import MAX_TURN_CHARS
@@ -322,7 +322,7 @@ def _eval_step(value: object) -> EvalStep:
 
 
 def _read_case_file(path: Path) -> tuple[str, int]:
-    flags = os.O_RDONLY
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
     for name in ("O_CLOEXEC", "O_NONBLOCK", "O_NOFOLLOW"):
         flags |= getattr(os, name, 0)
     descriptor: int | None = None
@@ -520,6 +520,79 @@ def _memory_record(
     )
 
 
+class _EphemeralEvalLedger:
+    """Process-local ledger for deterministic evals on hosts without POSIX storage."""
+
+    def __init__(self) -> None:
+        self._records: dict[str, MemoryRecord] = {}
+
+    def __enter__(self) -> _EphemeralEvalLedger:
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self._records.clear()
+
+    def remember(self, record: MemoryRecord, *, no_save: bool = False) -> bool:
+        if no_save:
+            return False
+        if not isinstance(record, MemoryRecord):
+            raise TypeError("record must be a MemoryRecord")
+        existing = self._records.get(record.record_id)
+        if existing is not None:
+            if existing == record and type(existing.value) is type(record.value):
+                return False
+            raise ValueError("record_id already identifies a different memory record")
+        self._records[record.record_id] = record
+        return True
+
+    def recall(self, query: RecallQuery) -> tuple[RecallHit, ...]:
+        if not isinstance(query, RecallQuery):
+            raise TypeError("query must be a RecallQuery")
+        superseded = {
+            target
+            for record in self._records.values()
+            if record.valid_from <= query.at
+            for target in record.supersedes
+        }
+        candidates: list[tuple[int, int, MemoryRecord, tuple[str, ...]]] = []
+        key = query.key.casefold() if query.key is not None else None
+        terms = tuple(term.casefold() for term in query.terms)
+        for record in self._records.values():
+            if record.profile_id != query.profile_id or record.record_id in superseded:
+                continue
+            if query.session_id is None:
+                if record.session_id is not None:
+                    continue
+            elif record.session_id not in (None, query.session_id):
+                continue
+            if record.valid_from > query.at or (
+                record.valid_until is not None and query.at >= record.valid_until
+            ):
+                continue
+            if query.kinds and record.kind not in query.kinds:
+                continue
+            exact = int(key is not None and record.key.casefold() == key)
+            haystack = " ".join((record.key, str(record.value), *record.tags)).casefold()
+            matched = tuple(term for term in terms if term in haystack)
+            if (key is not None or terms) and not exact and not matched:
+                continue
+            reasons = (
+                *(("exact_key",) if exact else ()),
+                *(f"term:{term}" for term in matched),
+                f"kind:{record.kind.value}",
+                f"recency:{record.created_at.isoformat()}",
+            )
+            candidates.append((exact, len(matched), record, reasons))
+        candidates.sort(
+            key=lambda item: (item[0], item[1], item[2].created_at, item[2].record_id),
+            reverse=True,
+        )
+        return tuple(
+            RecallHit(record=record, why_recalled=reasons)
+            for _, _, record, reasons in candidates[: query.limit]
+        )
+
+
 def _stance_probe(data: dict[str, Any] | None) -> StanceProbe | None:
     if data is None:
         return None
@@ -545,7 +618,7 @@ def _foundation_pack() -> FoundationPack:
 
 def _runtime(
     case: EvalCase,
-    ledger: SQLiteMemoryLedger,
+    ledger: SQLiteMemoryLedger | _EphemeralEvalLedger,
     foundation_pack: FoundationPack,
 ) -> HumanlikeRuntime:
     config = (
@@ -588,7 +661,10 @@ def _evaluate_case(
     seen: set[str] = set()
     failed_dimensions: set[str] = set()
     failures: list[str] = []
-    with SQLiteMemoryLedger(database_path) as ledger:
+    ledger_context: SQLiteMemoryLedger | _EphemeralEvalLedger = (
+        _EphemeralEvalLedger() if os.name == "nt" else SQLiteMemoryLedger(database_path)
+    )
+    with ledger_context as ledger:
         for index, seed in enumerate(case.seed_memories):
             ledger.remember(
                 _memory_record(

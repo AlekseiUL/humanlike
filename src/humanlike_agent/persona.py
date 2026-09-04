@@ -368,7 +368,13 @@ def _open_no_follow(root: Path, candidate: Path, relative_parts: tuple[str, ...]
     close_on_exec = getattr(os, "O_CLOEXEC", 0)
     directory_flag = getattr(os, "O_DIRECTORY", 0)
     can_walk_descriptors = bool(no_follow and directory_flag and os.open in os.supports_dir_fd)
-    final_flags = os.O_RDONLY | close_on_exec | no_follow | non_blocking
+    final_flags = (
+        os.O_RDONLY
+        | close_on_exec
+        | no_follow
+        | non_blocking
+        | getattr(os, "O_BINARY", 0)
+    )
 
     if not can_walk_descriptors:
         return os.open(candidate, final_flags)

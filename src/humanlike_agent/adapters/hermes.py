@@ -149,7 +149,7 @@ def _secure_config_read(
     if before.st_size > _MAX_CONFIG_BYTES:
         raise ValueError("config file exceeds the size limit")
 
-    flags = os.O_RDONLY
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
     for name in ("O_CLOEXEC", "O_NONBLOCK", "O_NOFOLLOW"):
         flags |= getattr(os, name, 0)
     directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)

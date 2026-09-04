@@ -1,5 +1,8 @@
+import os
 from datetime import UTC, datetime
 from pathlib import Path
+
+import pytest
 
 from humanlike_agent.memory import Evidence, MemoryKind, MemoryRecord, SQLiteMemoryLedger
 from humanlike_agent.models import MemoryScope, SessionRef, TurnInput, TurnOutcome
@@ -50,6 +53,7 @@ def test_minimum_context_keeps_complete_privacy_and_truth_tails() -> None:
     assert context.endswith("replacement of human relationships.")
 
 
+@pytest.mark.skipif(os.name == "nt", reason="persistent SQLite memory is POSIX-only")
 def test_no_save_real_ledger_prepare_observe_finalize_creates_nothing(
     tmp_path: Path,
 ) -> None:
@@ -87,6 +91,7 @@ def test_session_no_save_is_inherited_until_finalize() -> None:
     assert reset.memory_scope is MemoryScope.DEFAULT
 
 
+@pytest.mark.skipif(os.name == "nt", reason="persistent SQLite memory is POSIX-only")
 def test_explicit_consent_writes_to_real_ledger(tmp_path: Path) -> None:
     database = tmp_path / "state" / "memory.db"
     ledger = SQLiteMemoryLedger(database)
