@@ -5,12 +5,16 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from humanlike_agent.router import MAX_TURN_CHARS
 
 
 def _write_profile(root: Path, *, config_suffix: str = "") -> Path:
     root.mkdir(parents=True, exist_ok=True)
-    (root / "SOUL.md").write_text(
+    root.chmod(0o700)
+    persona = root / "SOUL.md"
+    persona.write_text(
         """\
 # Identity
 A truthful conversational AI.
@@ -23,6 +27,7 @@ Protect privacy.
 """,
         encoding="utf-8",
     )
+    persona.chmod(0o600)
     path = root / "humanlike.toml"
     path.write_text(
         """\
@@ -36,7 +41,23 @@ deep_context_chars = 2400
         + config_suffix,
         encoding="utf-8",
     )
+    path.chmod(0o600)
     return path
+
+
+@pytest.mark.skipif(
+    os.name == "nt", reason="POSIX permission bits and umask are not enforced on Windows"
+)
+def test_profile_fixture_stays_private_under_group_writable_umask(tmp_path: Path) -> None:
+    previous_umask = os.umask(0o002)
+    try:
+        config = _write_profile(tmp_path / "profile")
+    finally:
+        os.umask(previous_umask)
+
+    assert config.parent.stat().st_mode & 0o777 == 0o700
+    assert config.stat().st_mode & 0o777 == 0o600
+    assert (config.parent / "SOUL.md").stat().st_mode & 0o777 == 0o600
 
 
 def _json_stdout(capsys: object) -> dict[str, object]:

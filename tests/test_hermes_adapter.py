@@ -45,7 +45,9 @@ class _FakeHost:
 
 def _write_profile(root: Path, *, overrides: str = "") -> Path:
     root.mkdir(parents=True, exist_ok=True)
-    (root / "SOUL.md").write_text(
+    root.chmod(0o700)
+    persona = root / "SOUL.md"
+    persona.write_text(
         """\
 # Identity
 A truthful conversational AI.
@@ -58,6 +60,7 @@ Protect privacy.
 """,
         encoding="utf-8",
     )
+    persona.chmod(0o600)
     config = root / "humanlike.toml"
     config.write_text(
         """\
@@ -71,6 +74,7 @@ deep_context_chars = 2400
         + overrides,
         encoding="utf-8",
     )
+    config.chmod(0o600)
     return config
 
 
