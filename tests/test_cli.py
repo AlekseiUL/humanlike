@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from humanlike_agent.router import MAX_TURN_CHARS
 
 
@@ -43,6 +45,9 @@ deep_context_chars = 2400
     return path
 
 
+@pytest.mark.skipif(
+    os.name == "nt", reason="POSIX permission bits and umask are not enforced on Windows"
+)
 def test_profile_fixture_stays_private_under_group_writable_umask(tmp_path: Path) -> None:
     previous_umask = os.umask(0o002)
     try:
