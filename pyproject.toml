@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools==84.0.0"]
+requires = ["setuptools==84.1.0"]
 build-backend = "build_backend"
 backend-path = ["."]
 
@@ -47,7 +47,7 @@ dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
     "ruff>=0.6",
-    "setuptools==84.0.0",
+    "setuptools==84.1.0",
 ]
 
 [tool.setuptools.packages.find]

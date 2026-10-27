@@ -50,8 +50,8 @@ def test_release_version_and_mit_license_are_synchronized() -> None:
     project = metadata["project"]
     assert project["license"] == "MIT"
     assert project["license-files"] == ["LICENSE"]
-    assert metadata["build-system"]["requires"] == ["setuptools==84.0.0"]
-    assert "setuptools==84.0.0" in project["optional-dependencies"]["dev"]
+    assert metadata["build-system"]["requires"] == ["setuptools==84.1.0"]
+    assert "setuptools==84.1.0" in project["optional-dependencies"]["dev"]
 
     plugin = (REPOSITORY_ROOT / "plugin.yaml").read_text(encoding="utf-8")
     match = re.search(r'^version:\s*"([^"]+)"$', plugin, re.MULTILINE)
@@ -147,7 +147,7 @@ def test_ci_uses_the_locked_build_toolchain_and_complete_history() -> None:
     assert "uv build --no-build-isolation" in workflow
     assert "windows-latest" in workflow
     assert ".wheel-smoke\\Scripts\\humanlike.exe eval" in workflow
-    assert "setuptools==84.0.0" in (
+    assert "setuptools==84.1.0" in (
         REPOSITORY_ROOT / "pyproject.toml"
     ).read_text(encoding="utf-8")
 
