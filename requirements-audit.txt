@@ -2,7 +2,7 @@ build==1.6.0
 coverage==7.16.0
 iniconfig==2.3.0
 packaging==26.3
-pluggy==1.6.0
+pluggy==1.7.0
 pygments==2.21.0
 pyproject-hooks==1.2.0
 pytest==9.1.1
