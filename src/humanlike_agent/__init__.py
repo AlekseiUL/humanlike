@@ -1,5 +1,6 @@
 """Public contracts for the Humanlike."""
 
+from .conversation import ConversationContext, ConversationRecall, HistoryItem
 from .creative import (
     FOUNDATION_MANIFEST_SHA256,
     CandidateScore,
@@ -32,6 +33,7 @@ from .drift import (
     DriftSnapshot,
     ReanchorDirective,
 )
+from .host import AuthorizedHost, AuthorizedTurn
 from .memory import (
     Evidence,
     MemoryKind,
@@ -53,10 +55,21 @@ from .models import (
     TurnPlan,
 )
 from .persona import Persona, PersonaSpine, load_persona
+from .personal import Candidate, CaptureResult, ExtractionRequest, HumanEvent, PersonalMemory
 from .runtime import HumanlikeRuntime, RuntimeConfig, RuntimeSnapshot
 from .stance import StanceAction, StanceDecision, StanceProbe, decide_stance
 
 __all__ = [
+    "AuthorizedHost",
+    "AuthorizedTurn",
+    "Candidate",
+    "CaptureResult",
+    "ConversationContext",
+    "ConversationRecall",
+    "ExtractionRequest",
+    "HistoryItem",
+    "HumanEvent",
+    "PersonalMemory",
     "BehaviorReceipt",
     "BehaviorProbe",
     "CandidateScore",
@@ -109,4 +122,4 @@ __all__ = [
     "decide_stance",
 ]
 
-__version__ = "0.1.2"
+__version__ = "0.2.0"

@@ -12,7 +12,7 @@ The full source repository contains adversarial test strings used by its safety 
 
 - Hermes Agent with `hermes plugins` (verified against Hermes v0.21).
 - `uv` and Git access to `AlekseiUL/humanlike`.
-- macOS, Linux, WSL2, or native Windows with Python 3.11 or newer. Native Windows uses the memory-off plugin mode in `0.1.x`.
+- macOS, Linux, WSL2, or native Windows with Python 3.11 or newer. Native Windows uses the memory-off plugin mode in `0.2.x`.
 
 ### Install
 
@@ -38,7 +38,7 @@ hermes plugins enable humanlike-agent-kit --no-allow-tool-override
 hermes plugins show humanlike-agent-kit
 ```
 
-The optional Humanlike SQLite memory ledger remains disabled on native Windows in `0.1.x`. WSL2 is the supported Windows route when that ledger is required.
+The optional Humanlike SQLite memory ledger remains disabled on native Windows in `0.2.x`. WSL2 is the supported Windows route when that ledger is required.
 
 The starter runtime registers four hooks and no tools:
 
@@ -47,7 +47,7 @@ The starter runtime registers four hooks and no tools:
 - `post_llm_call`
 - `on_session_finalize`
 
-Memory is off by default. The plugin does not need model credentials, and its core runtime makes no network calls.
+Memory is off by default. The plugin does not need model credentials, and its core runtime makes no network calls. The optional 0.2.0 [consented memory/context API](PERSONAL_MEMORY.md) requires explicit trusted host wiring; installing or enabling this plugin does not activate it.
 
 ### Verify
 
@@ -92,7 +92,7 @@ Humanlike устанавливается как Python-пакет с офици�
 
 - Hermes Agent с командой `hermes plugins` (проверено на Hermes v0.21).
 - `uv` и доступ к `AlekseiUL/humanlike` через Git.
-- macOS, Linux, WSL2 или нативный Windows и Python 3.11 или новее. В нативном Windows ветка `0.1.x` использует плагин с выключенной памятью.
+- macOS, Linux, WSL2 или нативный Windows и Python 3.11 или новее. В нативном Windows ветка `0.2.x` использует плагин с выключенной памятью.
 
 ### Установка
 
@@ -118,7 +118,7 @@ hermes plugins enable humanlike-agent-kit --no-allow-tool-override
 hermes plugins show humanlike-agent-kit
 ```
 
-Опциональная SQLite-память Humanlike в нативном Windows для ветки `0.1.x` остаётся выключенной. Если она нужна, используйте WSL2.
+Опциональная SQLite-память Humanlike в нативном Windows для ветки `0.2.x` остаётся выключенной. Если она нужна, используйте WSL2.
 
 Стартовый режим регистрирует четыре hook и не добавляет инструменты:
 
@@ -127,7 +127,7 @@ hermes plugins show humanlike-agent-kit
 - `post_llm_call`
 - `on_session_finalize`
 
-Память по умолчанию выключена. Плагину не нужны ключи моделей, а его основная логика не обращается к сети.
+Память по умолчанию выключена. Плагину не нужны ключи моделей, а его основная логика не обращается к сети. Новый [API памяти и контекста](PERSONAL_MEMORY.md) версии 0.2.0 требует явной интеграции со стороны хоста; установка и включение плагина его не активируют.
 
 ### Проверка
 

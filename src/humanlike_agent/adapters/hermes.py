@@ -12,8 +12,9 @@ from pathlib import Path
 from threading import RLock
 from typing import Any, Final
 
+from ..host import AuthorizedHost, AuthorizedTurn
 from ..memory import SQLiteMemoryLedger
-from ..models import SessionRef, TurnInput, TurnOutcome
+from ..models import MemoryScope, SessionRef, TurnInput, TurnOutcome
 from ..persona import Persona
 from ..router import MAX_TURN_CHARS
 from ..runtime import HumanlikeRuntime, RuntimeConfig
@@ -323,11 +324,12 @@ class HermesAdapterConfig:
 class HermesAdapter:
     """Translate supported Hermes hook payloads without retaining host text."""
 
-    __slots__ = ("_active_turns", "_lock", "_runtime")
+    __slots__ = ("_active_turns", "_lock", "_runtime", "_prepared_scopes")
 
     def __init__(self, runtime: object) -> None:
         self._runtime = runtime
         self._active_turns: OrderedDict[str, str] = OrderedDict()
+        self._prepared_scopes: dict[str, MemoryScope] = {}
         self._lock = RLock()
 
     def __repr__(self) -> str:
@@ -377,6 +379,7 @@ class HermesAdapter:
                 except Exception:
                     return None
                 del self._active_turns[session_id]
+                self._prepared_scopes.pop(session_id, None)
             elif len(self._active_turns) >= _MAX_ACTIVE_SESSIONS:
                 return None
             try:
@@ -405,9 +408,51 @@ class HermesAdapter:
                     )
                     return None
                 self._active_turns[session_id] = turn_id
+                self._prepared_scopes[session_id] = getattr(
+                    plan, "memory_scope", MemoryScope.ITEM_NO_SAVE
+                )
                 return {"context": context}
             except Exception:
                 return None
+
+    def prepare_authorized(
+        self,
+        event_id: str,
+        *,
+        host: AuthorizedHost,
+        memory_keys: tuple[str, ...] = (),
+        domain: str = "general",
+        condition: str = "always",
+    ) -> AuthorizedTurn:
+        """Explicit host API, NOT a hook payload field or automatic plugin opt-in.
+
+        Call instead of pre_llm_call for this turn, then use the usual post/finalize
+        hooks. The host must deliver references as untrusted context, not mutate
+        canonical history/system instructions. See docs/PERSONAL_MEMORY.md.
+        """
+        if type(host) is not AuthorizedHost:
+            raise TypeError("host must be an AuthorizedHost binding")
+        try:
+            event = host.event(event_id)
+        except Exception:
+            return AuthorizedTurn("host_failed")
+        if event is None:
+            return AuthorizedTurn("denied")
+        with self._lock:
+            base = self.pre_llm_call(
+                session_id=event.session_id, turn_id=event.event_id, user_message=event.text
+            )
+            if base is None:
+                return AuthorizedTurn("runtime_failed")
+            no_save = self._prepared_scopes.get(event.session_id) != MemoryScope.DEFAULT
+        return host.enrich(
+            event,
+            base["context"],
+            memory_keys=memory_keys,
+            domain=domain,
+            condition=condition,
+            no_save=no_save,
+        )
 
     def transform_llm_output(self, **payload: Any) -> str | None:
         """Best-effort delivery correction for one explicit false identity claim."""
@@ -448,6 +493,7 @@ class HermesAdapter:
                 return None
             if active_turn is not None:
                 del self._active_turns[session_id]
+                self._prepared_scopes.pop(session_id, None)
         return None
 
     def on_session_finalize(self, **payload: Any) -> None:
@@ -463,6 +509,7 @@ class HermesAdapter:
                 return None
             finally:
                 self._active_turns.pop(session_id, None)
+                self._prepared_scopes.pop(session_id, None)
         return None
 
 

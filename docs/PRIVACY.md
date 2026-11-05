@@ -50,7 +50,7 @@ Durable memory is optional and disabled in the example Hermes profile. When enab
 
 Each record contains a typed kind, key, scalar value, confidence, timestamps, validity, evidence reference, optional tags, and optional supersession references. The schema intentionally has no raw-transcript column. A host could still put sensitive or transcript-like text into a record value, so the host must validate and minimize records before submission.
 
-The reference Hermes adapter never creates records from user or assistant text. Enabling a state path alone therefore does not create automatic conversational memory.
+The stock Hermes hooks never derive records from message text. Enabling a state path alone therefore does not create conversational memory. The optional [consented host API](PERSONAL_MEMORY.md) captures only explicit authorized atoms; it retains scoped relation metadata, event-ID hashes and durable revocation fences in the same ledger. Its no-save policy blocks capture, while explicitly authorized read-only conversation references remain available.
 
 ### Storage properties
 

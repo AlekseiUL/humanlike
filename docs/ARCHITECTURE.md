@@ -58,6 +58,9 @@ Contracts are frozen dataclasses and serialize to JSON-safe dictionaries through
 | `drift.py` | Probe scoring and re-anchor requests | In-memory session metadata |
 | `creative.py` | Mechanism-diverse planning and rights-aware pack loading | Local read-only pack files |
 | `memory.py` | Typed evidence-aware records, recall, supersession, and deletion | Optional local SQLite image |
+| `personal.py` | Explicit capture, consent/revocation, scoped relations and owner controls | Additive policy/event/metadata tables in the same ledger |
+| `conversation.py` | Bounded exact-anchor references from host-authorized history | None |
+| `host.py` | Authenticated host bindings and bounded reference context | None |
 | `runtime.py` | Orchestration, budgets, isolation, receipts, and lifecycle | Bounded in-memory metadata; optional memory port |
 | `evals.py` | Strict offline fixture loading and conformance reporting | Temporary per-run state |
 | `adapters/hermes.py` | Translation between four Hermes hooks and core contracts | Bounded in-memory active-turn map |
@@ -90,7 +93,7 @@ Hard fragments must fit in the configured limit. Optional fragments are ranked, 
 - no component or host error blocks the write;
 - the host supplies a tuple of validated records for the same profile and session.
 
-The reference Hermes adapter always supplies an empty record tuple, so it never derives durable memories from message text.
+The stock Hermes hooks still supply an empty record tuple. The optional, explicit `prepare_authorized` host API uses a separate consented capture path before the model call; it stores an owner assertion, not a claim of model/tool success. See [Consented memory](PERSONAL_MEMORY.md).
 
 `finalize()` removes the session's discourse/drift state, pending turns, completed receipts, identifiers, and fingerprints. Durable records already accepted by a configured memory backend are not session metadata and are not deleted by finalization.
 
