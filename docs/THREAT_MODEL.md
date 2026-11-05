@@ -26,7 +26,7 @@ contract. Never restore pre-forget state to perform a rollback.
 6. Fail neutral at the Hermes hook boundary without leaking rejected payloads or exception details.
 7. Run core behavior and conformance checks without model or network access.
 
-## Native 0.3.0 memory boundary
+## Native 0.3.1 memory boundary
 
 The [native bridge](HERMES_INSTALL.md) keeps bounded volatile proposals, one-time
 confirmation challenges, admission fingerprints and last-use receipts. Pending
@@ -48,8 +48,12 @@ The host, its admission/auth checks and its real command dispatcher remain trust
 a compromised host or OS account can bypass this boundary.
 
 Forget removes the selected lineage and its evidence text; opaque event hashes
-and sequence/policy fences remain to prevent resurrection. The limited native
-inspection view refuses to choose targets beyond its bound; use the paged API.
+and sequence/policy fences remain to prevent resurrection. Native inspection returns
+five-version pages; expiring volatile cursors are not authority. Target selection
+uses complete bounded key/domain/condition groups, never a partial page. Scoped
+forget includes contradictory versions. Confirmations and capture compare the
+expected policy, including the write watermark; stale/concurrent requests fail
+closed. The existing 256-version group limit and replay/deletion fences remain.
 
 ## Assets
 
@@ -109,7 +113,7 @@ Session-level no-save remains the strictest scope until `finalize()`. A later sa
 
 ### A host passes message text as a memory record
 
-The core validates record shape and write conditions, but it cannot determine whether a scalar value is an over-broad transcript excerpt. The host is trusted to apply data minimization before supplying records. The core behavior adapter supplies no records. The native 0.3.0 control bridge
+The core validates record shape and write conditions, but it cannot determine whether a scalar value is an over-broad transcript excerpt. The host is trusted to apply data minimization before supplying records. The core behavior adapter supplies no records. The native 0.3.1 control bridge
 accepts only its closed reply-length vocabulary after human confirmation.
 
 ### A profile points outside its directory

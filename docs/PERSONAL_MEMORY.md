@@ -1,9 +1,9 @@
 # Consented memory and conversation references — developer API
 
-This is the lower-level API introduced in 0.2.0. For callback-free 0.3.0 setup,
+This is the lower-level API introduced in 0.2.0. For callback-free 0.3.1 setup,
 use [Native Hermes installation and controls](HERMES_INSTALL.md). The old API
 remains available; its English grammar is supplemented by the closed RU/EN
-reply-length vocabulary. / Для готового подключения 0.3.0 используйте
+reply-length vocabulary. / Для готового подключения 0.3.1 используйте
 [инструкцию EN/RU](HERMES_INSTALL.md); ниже описан прежний API разработчика.
 
 [English](#english) · [Русский](#русский)
@@ -19,7 +19,7 @@ source evidence, and available on later turns. `ConversationContext` separately
 retrieves bounded references from history explicitly supplied by the host.
 
 Defaults are unchanged: the installed Hermes plugin does not start capturing
-personal information. This section describes the programmatic host integration, not the 0.3.0 native
+personal information. This section describes the programmatic host integration, not the 0.3.1 native
 Hermes hook, slash command, TOML flag, or automatic archive reader. The existing
 `memory_enabled` option provisions the legacy ledger; it is **not owner consent**
 for this pipeline. No cloud memory service, model, credential or network dependency
@@ -72,7 +72,15 @@ Expose these methods through authenticated UI controls, not model permissions:
 | Inspect | `memory.inspect(after=0, limit=50)` | Versions, sources, scopes and relations; page by last `sequence` |
 | Correct | `memory.correct(event_id)` | Requires a fresh explicit correction event and target ID |
 | Forget | `memory.forget(record_id)` | Erases the entire key/domain/condition lineage, including confirmations and old versions |
+| Native snapshot page (0.3.1) | `memory.inspect_page(after=0, limit=5)` | Tuple: facts, globally active record IDs, has-more flag, snapshot policy |
+| Native scoped targets (0.3.1) | `memory.management_targets("reply_length", domain="general")` | Complete bounded group; `whole_lineage=True` returns one representative per domain for forget, including conflicts |
 | Disable | `memory.disable()` | Stops capture/recall and revokes pending results; inspect/forget remain available |
+
+`capture(event_id, expected_policy=memory.policy())` (0.3.1) checks the entire
+consent/epoch/watermark tuple in the reservation transaction. The existing
+`expected_epoch` argument remains supported. These SDK helpers require trusted host
+authorization; the native bridge supplies bindings and confirmations. They do not
+make model-generated scope arguments trustworthy.
 
 Forget also advances the policy epoch when the requested ID is absent. Scope
 checks prevent deleting another owner's record. Disable is not deletion. To remove
@@ -298,6 +306,11 @@ python examples/consented_memory.py
 ### Управление и гарантии
 
 - `inspect(after=..., limit=...)` — просмотр версий, условий и источников, до 50 за страницу.
+- В native 0.3.1 обычные команды дают страницы по пять версий; SDK для управления
+  не нужен. `inspect_page` возвращает также активные ID, наличие следующей страницы
+  и политику снимка; `management_targets` выбирает полную ограниченную область.
+- `capture(..., expected_policy=...)` проверяет согласие, эпоху и watermark перед
+  резервированием записи; старый `expected_epoch` сохранён.
 - `correct(event_id)` — исправление по новому разрешённому событию.
 - `forget(record_id)` — удаление всей истории данного ключа и условия, включая подтверждения.
 - `disable()` — остановка записи и recall, отмена ожидающих результатов; это не удаление.

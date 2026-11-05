@@ -6,7 +6,7 @@
 
 [English](#english) · [Русский](#русский) · [Documentation](#documentation) · [License](#license)
 
-> **Status: public beta (`0.3.0`), licensed under MIT.** The API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
+> **Status: public beta (`0.3.1`), licensed under MIT.** The API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
 
 ```mermaid
 flowchart LR
@@ -21,7 +21,19 @@ flowchart LR
 
 Humanlike is a behavioral planning layer for AI agents. It classifies each turn, selects a social and cognitive mode, assembles bounded guidance, and returns privacy-aware metadata. The host remains responsible for model calls, tools, transport, output delivery, transcript retention, and policy enforcement.
 
-### What's new in 0.3.0
+### What's fixed in 0.3.1
+
+- Full multiline second alternatives, including conditions; ambiguous or oversized
+  blocks ask for clarification instead of presenting a truncated match.
+- Five-version memory pages with `Next memory page`; correction and scoped forget
+  use the full lineage, even beyond 50 versions. No SDK coding needed.
+- Small full-match RU/EN paraphrases: `Please, usually keep replies short` and
+  `Remember: I prefer short replies`. Confirmation is still required.
+
+Live Telegram pilot: **NOT_RUN**. This patch has offline/native-interface checks,
+not new model-quality evidence. The previous A/B below remains a tie.
+
+### Native features introduced in 0.3.0
 
 - **Native Hermes setup:** export a runtime-only plugin, enable it, and use `/humanlike` without writing callbacks. Memory is OFF until explicit, single-use confirmation.
 - **Small RU/EN memory vocabulary:** save reply-length preferences, inspect sources, correct or forget an unambiguous target, pause, and distinguish no-save from no-recall. Ordinary text proposes; it never authorizes a save.
@@ -161,7 +173,19 @@ The installed runtime has no third-party Python dependencies. Development, build
 
 Humanlike — публичная бета-библиотека под лицензией MIT. Это детерминированный поведенческий слой для ИИ-агентов: он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
 
-### Что нового в 0.3.0
+### Что исправлено в 0.3.1
+
+- Второй вариант сохраняется целиком: заголовок, текст и условия. При неоднозначности
+  или превышении бюджета требуется уточнение, а не обрезанный «найденный» вариант.
+- Просмотр памяти по пять версий: `Следующая страница памяти`. Исправление и забывание
+  работают со всей цепочкой, в том числе после 50 версий, без Python-кода.
+- Небольшой набор точных RU/EN-перефразировок: `Пожалуйста, обычно отвечай кратко`
+  и `Запомни: я предпочитаю короткие ответы`. Подтверждение записи сохранено.
+
+Живой Telegram-пилот: **NOT_RUN**. Проверены код и штатные интерфейсы в изоляции;
+новых модельных оценок нет. Предыдущий A/B ниже остаётся ничьей.
+
+### Возможности, добавленные в 0.3.0
 
 - **Готовое подключение к Hermes:** экспорт рабочих файлов, штатное включение и `/humanlike` без Python-callbacks. Память выключена до явного одноразового подтверждения.
 - **Небольшой RU/EN-словарь:** предпочтения длины ответа, просмотр источников, исправление, забывание, пауза и отдельные no-save/no-recall. Обычная фраза предлагает запись, но не разрешает её.

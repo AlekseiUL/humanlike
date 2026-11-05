@@ -70,6 +70,13 @@ quota and requires a separately approved native route and a fresh call budget.
 The useful increment is connected, inspectable memory/control/continuity behavior,
 not a promise that extra prompt text improves an already strong model.
 
+## Corrective patch 0.3.1
+
+The later continuity, pagination and small-parser fixes were checked with offline
+regressions and real native-interface synthetic dispatch. No new model calls or
+blinded A/B were run. The scores above apply to the 0.3.0 experiment, not a claim
+of improved quality in 0.3.1. Live Telegram pilot remains **NOT_RUN**.
+
 ## Русский
 
 Проверка проведена: 12 синтетических диалогов, 24 ответа и 12 слепых оценок одной

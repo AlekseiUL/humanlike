@@ -407,6 +407,7 @@ class PersonalMemory:
         *,
         no_save: bool = False,
         expected_epoch: int | None = None,
+        expected_policy: tuple[bool, int, int] | None = None,
         extractor: Callable[[ExtractionRequest], Candidate] | None = None,
     ) -> CaptureResult:
         """Capture one explicit atom, optionally round-tripping an untrusted proposer.
@@ -435,6 +436,8 @@ class PersonalMemory:
         # event after forget/disable. No raw text is kept in this reservation.
         with self._transaction() as db:
             enabled, epoch, watermark = self._policy(db)
+            if expected_policy is not None and (enabled, epoch, watermark) != expected_policy:
+                return CaptureResult("revoked")
             if expected_epoch is not None and epoch != expected_epoch:
                 return CaptureResult("revoked")
             if not enabled:
@@ -603,6 +606,64 @@ class PersonalMemory:
             return ()
         try:
             return self._facts(db, after=after, limit=limit)
+        finally:
+            db.close()
+
+    def inspect_page(self, *, after: int = 0, limit: int = 5) -> tuple:
+        """One snapshot: bounded versions, globally active IDs, more flag, policy.
+
+        Unlike applying _active to a single page, replacement checks include
+        later versions. The cursor is a sequence, not an offset or authority.
+        """
+        self._require("inspect")
+        if type(after) is not int or after < 0 or type(limit) is not int or not 1 <= limit <= 5:
+            raise ValueError("invalid page bounds")
+        self._ledger._ensure_open()
+        db = self._ledger._read_connection()
+        if db is None:
+            return (), frozenset(), False, (False, 0, 0)
+        try:
+            facts = self._facts(db, after=after, limit=limit + 1)
+            active_ids = frozenset(
+                f.record.record_id for f in facts[:limit]
+                if f.relation != "confirms" and not db.execute(
+                    "SELECT 1 FROM personal_records p JOIN memory_records r "
+                    "ON r.record_id=p.record_id WHERE p.namespace=? AND p.target_id=? "
+                    "AND p.relation IN ('supersedes', 'corrects') "
+                    "AND r.deleted_at IS NULL LIMIT 1",
+                    (self._namespace, f.record.record_id),
+                ).fetchone()
+            )
+            return facts[:limit], active_ids, len(facts) > limit, self._policy(db)
+        finally:
+            db.close()
+
+    def management_targets(self, key: str, *, domain: str | None = None,
+                           whole_lineage: bool = False) -> tuple[PersonalFact, ...]:
+        """Bounded native scopes, independent of inspection pages and consent.
+
+        A whole-lineage forget needs one representative per domain, including
+        conflicts; corrections require a single active fact. No recall/injection.
+        Existing group limits still apply. Unsupported conditions are untouched.
+        """
+        self._require("inspect")
+        key = _label(key, "key")
+        if domain not in {None, "general", "learning"}:
+            raise ValueError("unsupported management domain")
+        self._ledger._ensure_open()
+        db = self._ledger._read_connection()
+        if db is None:
+            return ()
+        try:
+            if not db.execute(
+                "SELECT 1 FROM sqlite_master WHERE name='personal_records'"
+            ).fetchone():
+                return ()
+            result = []
+            for name in ((domain,) if domain else ("general", "learning")):
+                active = self._active(self._group(db, key, name, "always"))
+                result.extend(active[:1] if whole_lineage else active)
+            return tuple(result)
         finally:
             db.close()
 

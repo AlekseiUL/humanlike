@@ -6,6 +6,39 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-05
+
+### Fixed — English
+
+- Second-alternative lookup preserves multiline bodies and trailing conditions;
+  unsupported/duplicate headings and over-budget blocks clarify without stale fallback.
+- Native memory inspection pages five versions at a time. Full-lineage management
+  no longer stops at 50 records; page state expires on mutation, timeout or restart.
+  Active markers include later replacements; scoped forget includes contradictions.
+- Capture checks the full expected policy at reservation, including concurrent writes.
+- Small optional-politeness and explicit-preference RU/EN forms; unsupported explicit
+  memory requests clarify without saving. No model extraction or new dependencies.
+
+### Исправлено — Русский
+
+- Второй вариант извлекается целиком, с многострочным текстом и условиями. Неясные,
+  повторные заголовки и превышение бюджета требуют уточнения, без подстановки старого текста.
+- Память просматривается по пять версий; лимит 50 записей больше не блокирует
+  управление. Изменение памяти, тайм-аут или перезапуск сбрасывают просмотр.
+  Активность учитывает поздние исправления; забывание области удаляет и противоречия.
+- Перед записью проверяется вся ожидаемая политика, включая параллельные записи.
+- Добавлены несколько RU/EN-перефразировок и необязательное «пожалуйста».
+  Неподдерживаемый явный запрос памяти требует уточнения, а не сохраняется.
+
+### Limits / Ограничения
+
+- Existing 256-version limit per key/domain/condition remains; inspect and explicitly
+  forget that scope before starting a fresh lineage. No schema migration.
+- Лимит 256 версий на ключ/область/условие сохранён; после просмотра можно явно забыть
+  эту область и начать новую цепочку. Схема хранилища не меняется.
+- Real Hermes synthetic dispatch is not live Telegram delivery: **NOT_RUN** for the
+  live pilot. No new model A/B; the previous tie is unchanged. No tag or PyPI release.
+
 ## [0.3.0] - 2026-11-05
 
 ### Added — English

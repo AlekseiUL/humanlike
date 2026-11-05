@@ -42,7 +42,7 @@ def test_enduring(text, value, domain):
     ],
 )
 def test_not_enduring(text):
-    assert parse_request(text).action == "none"
+    assert parse_request(text).action in {"none", "clarify"}
 
 
 @pytest.mark.parametrize(

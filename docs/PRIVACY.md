@@ -70,7 +70,7 @@ Use operating-system or volume encryption when memory confidentiality at rest is
 
 `post_llm_call` reads assistant text only to validate payload shape and measure response length; the adapter does not pass the text into `TurnOutcome` or runtime state. The adapter reports a conservative unknown host status rather than treating delivery as proof that persistence was safe.
 
-## Native 0.3.0 memory boundary
+## Native 0.3.1 memory boundary
 
 The [native bridge](HERMES_INSTALL.md) keeps bounded volatile proposals, one-time
 confirmation challenges, admission fingerprints and last-use receipts. Pending
@@ -92,8 +92,12 @@ The host, its admission/auth checks and its real command dispatcher remain trust
 a compromised host or OS account can bypass this boundary.
 
 Forget removes the selected lineage and its evidence text; opaque event hashes
-and sequence/policy fences remain to prevent resurrection. The limited native
-inspection view refuses to choose targets beyond its bound; use the paged API.
+and sequence/policy fences remain to prevent resurrection. Native inspection returns
+five-version pages; expiring volatile cursors are not authority. Target selection
+uses complete bounded key/domain/condition groups, never a partial page. Scoped
+forget includes contradictory versions. Confirmations and capture compare the
+expected policy, including the write watermark; stale/concurrent requests fail
+closed. The existing 256-version group limit and replay/deletion fences remain.
 
 ## Logging and telemetry
 

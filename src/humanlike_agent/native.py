@@ -54,6 +54,9 @@ HELP_EN = (
     "what do you remember; why did you use that; correct that: usually give detailed replies; "
     "forget that; pause memory. Natural chat requests propose only: /humanlike confirm "
     "asks for a fresh confirmation command; send it to approve. /humanlike cancel cancels. "
+    "Inspect five versions per page; next memory page continues. "
+    "Forget general reply length / forget learning reply length erases the whole scoped lineage. "
+    "Also: Please, usually keep replies short; Remember: I prefer short replies. "
     "Only reply-length preferences are extracted; other wording is not guessed."
 )
 HELP_RU = (
@@ -63,7 +66,10 @@ HELP_RU = (
     "Просьба в обычном чате — только предложение: /humanlike подтверждаю "
     "выдаёт одноразовую команду; отправьте её для записи, "
     "/humanlike отмена отменяет. Цитаты не команды. Извлекаются только предпочтения длины ответа; "
-    "другие формулировки не угадываются."
+    "другие формулировки не угадываются. Просмотр — по пять версий; "
+    "следующая страница памяти продолжает его. Забудь длину общих ответов / "
+    "забудь длину учебных ответов удаляет всю цепочку этой области. "
+    "Также: Пожалуйста, обычно отвечай кратко; Запомни: я предпочитаю короткие ответы."
 )
 FORGET_EN = (
     "Only this Humanlike preference lineage was erased; opaque replay fences remain. "
@@ -87,6 +93,7 @@ class NativeController:
         self._tickets: OrderedDict[str, tuple] = OrderedDict()
         self._used: OrderedDict[tuple[str, str], tuple] = OrderedDict()
         self._challenges: OrderedDict[tuple[str, str], tuple] = OrderedDict()
+        self._pages: OrderedDict[tuple[str, str], tuple] = OrderedDict()
 
     @staticmethod
     def _bound(mapping: OrderedDict, key, value) -> None:
@@ -324,6 +331,65 @@ class NativeController:
                 self._pending.pop(scope.key, None)
                 self._used.pop(scope.key, None)
                 self._challenges.pop(scope.key, None)
+                self._pages.pop(scope.key, None)
+
+    def _inspect(self, memory: PersonalMemory, scope: Scope, next_page: bool, text: str) -> str:
+        cursor = self._pages.pop(scope.key, None)
+        after = 0
+        policy = memory.policy()
+        if next_page:
+            if (
+                not cursor
+                or cursor[0] != scope.session
+                or cursor[1] != policy
+                or time.monotonic() > cursor[3]
+            ):
+                return _say(
+                    "page_expired",
+                    "Start again: /humanlike what do you remember.",
+                    "Начните заново: /humanlike что ты помнишь.",
+                    text,
+                )
+            after = cursor[2]
+        facts, active_ids, has_more, snapshot_policy = memory.inspect_page(after=after)
+        if snapshot_policy != policy or memory.policy() != policy:
+            return _say(
+                "page_expired",
+                "Memory changed; restart inspection.",
+                "Память изменилась; начните просмотр заново.",
+                text,
+            )
+        if not facts:
+            return _say(
+                "empty",
+                "Nothing stored in this owner/chat scope.",
+                "В памяти этого владельца/чата пусто.",
+                text,
+            )
+        if has_more:
+            self._bound(
+                self._pages,
+                scope.key,
+                (scope.session, policy, facts[-1].sequence, time.monotonic() + 300),
+            )
+        rows = [
+            {
+                "preference": f.record.key,
+                "value": f.record.value,
+                "domain": f.domain,
+                "condition": f.condition,
+                "source": f.record.evidence.source_id,
+                "relation": f.relation,
+                "active": f.record.record_id in active_ids,
+            }
+            for f in facts
+        ]
+        return _say(
+            "stored_records",
+            "Stored versions. Next: /humanlike next memory page (if has_more). ",
+            "Сохранённые версии. Далее: /humanlike следующая страница памяти (если has_more). ",
+            text,
+        ) + json.dumps({"records": rows, "has_more": has_more}, ensure_ascii=False)
 
     def _memory(self, scope: Scope, event: HumanEvent | None = None) -> PersonalMemory:
         return PersonalMemory(
@@ -384,8 +450,12 @@ class NativeController:
         def say(code, en, ru):
             return _say(code, en, ru, text)
 
-        if request.action in {"none", "help"}:
-            return say("supported_scope", HELP_EN, HELP_RU)
+        if request.action in {"none", "help", "clarify"}:
+            return say(
+                "clarify" if request.action == "clarify" else "supported_scope",
+                "Nothing saved. " + HELP_EN,
+                "Ничего не сохранено. " + HELP_RU,
+            )
         memory = self._memory(scope)
         if required_policy is not None and memory.policy() != required_policy:
             return say(
@@ -498,38 +568,8 @@ class NativeController:
                 )
                 + used[1]
             )
-        facts = memory.inspect(limit=50)
-        if len(facts) == 50:
-            return say(
-                "inspection_limit",
-                "History exceeds the native view. Use the paged SDK before changing it.",
-                "История превышает лимит просмотра. До изменений используйте постраничный SDK.",
-            )
-        active = memory._active(facts)
-        if request.action == "inspect":
-            if not facts:
-                return say(
-                    "empty",
-                    "Nothing stored in this owner/chat scope.",
-                    "В памяти этого владельца/чата пусто.",
-                )
-            rows = [
-                {
-                    "preference": f.record.key,
-                    "value": f.record.value,
-                    "domain": f.domain,
-                    "condition": f.condition,
-                    "source": f.record.evidence.source_id,
-                    "relation": f.relation,
-                    "active": f in active,
-                }
-                for f in facts
-            ]
-            return say(
-                "stored_records",
-                "Stored versions and sources: ",
-                "Сохранённые версии и источники: ",
-            ) + json.dumps(rows, ensure_ascii=False)
+        if request.action in {"inspect", "inspect_next"}:
+            return self._inspect(memory, scope, request.action == "inspect_next", text)
         if request.action in {"remember", "correct"} and (not policy[0] or no_save):
             return say(
                 "no_save" if no_save else "disabled",
@@ -548,15 +588,19 @@ class NativeController:
             text, expected, _, target_id = pending
             request = parse_request(text)
         else:
-            matches = [
-                f
-                for f in active
-                if f.record.key == request.key
-                and (
-                    (request.action == "forget" and request.value != "scoped")
-                    or f.domain == request.domain
+            matches = memory.management_targets(
+                request.key,
+                domain=None
+                if request.action == "forget" and request.value != "scoped"
+                else request.domain,
+                whole_lineage=request.action == "forget",
+            )
+            if memory.policy() != policy:
+                return say(
+                    "cancelled",
+                    "Memory changed; repeat the request.",
+                    "Память изменилась; повторите запрос.",
                 )
-            ]
             target_id = matches[0].record.record_id if len(matches) == 1 else None
             if request.action in {"correct", "forget"} and target_id is None:
                 return say(
@@ -612,8 +656,16 @@ class NativeController:
             domain=request.domain,
             target_id=target_id if request.action == "correct" else None,
         )
-        result = self._memory(scope, event).capture(ref, expected_epoch=expected[1])
+        result = self._memory(scope, event).capture(ref, expected_policy=expected)
         self._used.pop(scope.key, None)
+        if result.status == "group_full":
+            return say(
+                "group_full",
+                "Not saved: 256 versions in this scope. Inspect, then explicitly forget "
+                "general or learning reply length before saving a fresh preference.",
+                "Не сохранено: 256 версий в этой области. Просмотрите их, затем явно "
+                "забудьте длину общих или учебных ответов перед новой записью.",
+            )
         return say(
             result.status,
             "Saved." if result.status == "stored" else "Not saved.",

@@ -46,7 +46,7 @@ Network filesystems, cloud-synchronized folders, shared volumes, removable drive
 ## Hermes host contract
 
 The original memory-off four-hook checkpoint used Hermes `v0.21.0`.
-The 0.3.0 native bridge was exercised against Hermes 0.22.6, source `f0d94882`,
+The 0.3.1 native bridge was exercised against Hermes 0.22.6, source `f0d94882`,
 in an isolated synthetic home using real `PluginManager`, `PluginContext`,
 `SessionSource` and `invoke_plugin_command` interfaces. This is not a live transport test.
 
@@ -79,7 +79,7 @@ real-interface smoke, and a separately authorized live delivery canary. Local
 
 `PersonalMemory`, `ConversationContext`, `AuthorizedHost` and
 `HermesAdapter.prepare_authorized` remain additive developer APIs. Integrators of
-that lower-level path still own authorization/history callbacks. The 0.3.0 native
+that lower-level path still own authorization/history callbacks. The 0.3.1 native
 bridge supplies these bindings for its documented supported surface; it does not
 change the legacy `memory_enabled` TOML option into owner consent. See the
 [developer guide](PERSONAL_MEMORY.md) and [native setup](HERMES_INSTALL.md).

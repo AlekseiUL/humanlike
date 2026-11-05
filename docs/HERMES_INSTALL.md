@@ -1,4 +1,4 @@
-# Installing Humanlike in Hermes (0.3.0)
+# Installing Humanlike in Hermes (0.3.1)
 
 [English](#english) · [Русский](#русский)
 
@@ -71,12 +71,16 @@ controls, but **not automatic admitted-message memory/continuity injection**.
 | Need | English | Russian |
 |---|---|---|
 | General short replies | `Usually keep replies short` | `Обычно отвечай кратко` |
+| Preference paraphrase | `Remember: I prefer short replies` | `Запомни: я предпочитаю короткие ответы` |
+| Optional politeness | `Please, usually keep replies short` | `Пожалуйста, обычно отвечай кратко` |
+| Next inspection page | `Next memory page` | `Следующая страница памяти` |
 | Detailed learning | `Explain learning topics in detail` | `Объясняй учебные темы подробно` |
 | Inspect | `What do you remember?` | `Что ты помнишь?` |
 | Why used | `Why did you use that?` | `Почему ты это использовал?` |
 | Correct general length | `Correct that: usually give detailed replies` | `Исправь это: обычно отвечай подробно` |
 | Forget one unambiguous preference | `Forget that` | `Забудь это` |
 | Disambiguate forget | `Forget general reply length` | `Забудь длину общих ответов` |
+| Forget learning lineage | `Forget learning reply length` | `Забудь длину учебных ответов` |
 | Stop capture and recall | `Pause memory` | `Отключи память` |
 | Session no-save | `Do not save this session` | `Не сохраняй эту сессию` |
 | Session no-recall | `Do not recall this session` | `Не вспоминай в этой сессии` |
@@ -90,6 +94,13 @@ in ordinary chat never writes. `/humanlike cancel` cancels a proposal/challenge.
 The closed parser extracts only reply-length preferences, with `general` or
 `learning` domains and `always` condition. Unknown wording is not guessed. A
 one-off `This reply shorter` remains a normal request, not a saved preference.
+One optional leading `Please` / `Please,` or `Пожалуйста` / `Пожалуйста,` is accepted.
+`I prefer short replies` / `I prefer detailed replies` and
+`я предпочитаю короткие ответы` / `я предпочитаю подробные ответы` are supported,
+including after `Remember:` / `Запомни:` or correction prefixes. Full-match only:
+quoted, forwarded, negated, temporary and mixed sentences cannot authorize memory.
+An unsupported explicit `Remember:` request returns `[clarify]`; ordinary unknown
+wording remains normal chat. `/humanlike help` lists the narrow supported scope.
 There is no model extractor, mood/personality inference, or hidden provider call.
 Learning preferences are selected on explicit explain/teach requests; otherwise
 general defaults apply. Current instructions and corrections outrank stored defaults.
@@ -100,13 +111,29 @@ After consent and binding, `continue`, `the second version`, `use my last correc
 and `we discussed <topic>` resolve against a bounded recent host history. Russian
 forms include `продолжи`, `второй вариант`, `используй мою последнюю поправку` and
 `мы обсуждали <тема>`. Missing references remain missing; ambiguity asks a question.
+For a second version, use plain top-level `Version 1:` / `Version 2:`,
+`Вариант 1:` / `Вариант 2:`, or consistent `1.` / `2.` (also `1)` / `2)`) headings.
+Consecutive numbering must start at one, without duplicates or mixed styles.
+The complete second block runs to the next heading, or the end; trailing notes are
+retained, not silently dropped. Fenced/quoted/unsupported headings or a block over
+2,200 characters return `clarify` with no partial match. Only the latest assistant
+artifact in the last 32 rows is considered, up to 16,384 characters; an oversized
+latest artifact never falls back to an older one. Nested lists may need clarification.
 The resolver includes actual host tool rows, never treats an assistant's claim as
 a completed tool action, and does not rewrite history or crawl archives.
 
 Inspection shows stored versions, domain, condition, source reference and relation.
 Why-use reports what was offered as context, not proof that the model followed it.
-The native view is bounded to fewer than 50 versions; a larger history returns
-`[inspection_limit]` and requires the paged SDK rather than silently hiding targets.
+Since 0.3.1, inspection returns up to five versions plus `has_more`. Send
+`/humanlike next memory page` while it is true; repeat the initial inspect request
+to start over. Cursors expire after five minutes, a changed policy/history, session
+finalization or restart; `[page_expired]` asks you to inspect again. Active markers
+include replacements on later pages. Inspection does not imply recall consent.
+Correction and forget select from complete bounded scopes, **never the visible page**.
+Ambiguous corrections ask for clarification. Scoped forget removes the entire
+key/domain/condition lineage, including conflicting values, not just one version.
+The existing limit of 256 versions per scope remains: `[group_full]` refuses a new
+version; inspection and explicit scoped forget still work. No schema change.
 No-save blocks new captures; no-recall blocks injection but still permits owner
 inspection. These session flags survive restart; resume clears them explicitly.
 
@@ -132,6 +159,14 @@ normal private backup procedure, export into a **new** directory, inspect it, th
 replace only the disabled plugin. Existing targets and symlink parents are rejected;
 a failed export may leave an incomplete new directory, never a claimed installation.
 Do not delete state or downgrade its schema as part of an automatic rollback.
+Never restore a pre-forget ledger: keep the current deletion/replay fences.
+
+Live Telegram pilot: **NOT_RUN**, not PASS. Minimum setup: owner-approved separate
+test profile and bot/DM route, installation/activation in that isolated host, and
+permission to send synthetic test messages. The owner provisions any credentials;
+never paste them into chat. No live profile, gateway or transport was changed by
+this patch. A model-response pilot also needs a separate provider-call budget;
+control-only dispatch tests do not prove answer quality.
 
 ## Русский
 
@@ -177,13 +212,24 @@ Telegram-чате без темы. В native CLI есть команды в пр
 
 Точные поддерживаемые фразы — в таблице выше. Словарь намеренно небольшой:
 длина общих ответов и подробность учебных объяснений. «Этот ответ покороче» не
-сохраняется как постоянное правило. Свободного извлечения любых фактов, выводов о
+сохраняется как постоянное правило. Поддерживается одно «пожалуйста» в начале, а также
+«я предпочитаю короткие ответы» / «я предпочитаю подробные ответы», в том числе
+после «Запомни:» и «Исправь это:». Совпадать должна вся фраза: цитаты, пересылки,
+отрицания, временные и смешанные просьбы не разрешают запись. Неподдерживаемый
+явный запрос «Запомни:» возвращает `[clarify]`, без сохранения.
+Свободного извлечения любых фактов, выводов о
 характере или скрытого обращения к другой модели нет.
 
 `Продолжи`, `второй вариант`, `используй мою последнюю поправку`, `мы обсуждали <тема>`
 используют только ограниченную недавнюю историю текущего диалога. Неоднозначность
 требует уточнения; отсутствующее воспоминание не выдумывается. Последняя просьба
 важнее старого предпочтения. История не переписывается, архивы не сканируются.
+Для вариантов подходят простые заголовки «Вариант 1:» / «Вариант 2:», английское
+`Version`, нумерация `1.` / `2.` или `1)` / `2)`. Номера идут подряд с единицы,
+без повторов и смешения оформления. Второй блок сохраняется до следующего заголовка
+или конца, включая примечания. Неясные заголовки, цитаты, кодовые блоки и текст длиннее
+2 200 символов требуют уточнения. Проверяется только последний ответ ассистента
+среди 32 строк истории, до 16 384 символов; слишком длинный ответ не подменяется старым.
 
 Просмотр показывает версии, область, условие и источник. Объяснение использования
 показывает переданный модели контекст, а не гарантирует её послушание. No-save
@@ -194,11 +240,27 @@ SQLite находится в `plugin-data/humanlike/memory.sqlite` внутри 
 не шифруется и начинается пустой. Чаты и владельцы изолированы. «Забудь» удаляет
 цепочку версий выбранного предпочтения из Humanlike; метки защиты от повторов
 остаются. Переписка Hermes, копии провайдера и резервные копии не удаляются.
-«Отключи память» сохраняет записи для просмотра и удаления. При большом числе
-версий `[inspection_limit]` требует постраничного SDK вместо скрытого выбора цели.
+«Отключи память» сохраняет записи для просмотра и удаления. Начиная с 0.3.1,
+просмотр выдаёт до пяти версий и `has_more`. Пока он равен `true`, отправляйте
+`/humanlike следующая страница памяти`. Первый запрос просмотра начинает его заново.
+Через пять минут, после изменения памяти, завершения сессии или перезапуска
+`[page_expired]` просит начать заново. Метка активности учитывает поздние исправления.
+Исправление и забывание не зависят от открытой страницы. При неясной цели нужно
+уточнение; «Забудь длину общих ответов» или «Забудь длину учебных ответов» удаляет
+всю соответствующую цепочку, включая противоречия. Прежний лимит 256 версий на
+ключ/область/условие сохранён: `[group_full]` запрещает новую версию, но не просмотр
+и явное забывание. Python-код для этого не нужен; схема хранилища не меняется.
 
 Откат: `hermes plugins disable humanlike-agent-kit`, затем безопасный запуск нового
 процесса. Перед обновлением сохраните прежний каталог и локальное хранилище своим
 приватным способом резервирования. Не удаляйте память и не понижайте её схему
 автоматически. [Результат A/B](NATIVE_EVALUATION.md): проверка проведена, но улучшение
 качества относительно сильной базовой модели не доказано.
+Не восстанавливайте хранилище до забывания: текущие метки удаления и повторов сохраняются.
+
+Живой Telegram-пилот — **NOT_RUN**, не PASS. Минимально нужны разрешённые владельцем
+отдельный тестовый профиль и маршрут бота/личного чата, установка и включение в этом
+изолированном хосте, разрешение на синтетические сообщения. Учётные данные настраивает
+владелец, не передавая их в чат. Живые профили, gateway и транспорт этой правкой не
+менялись. Для проверки ответов модели нужен отдельный бюджет вызовов; проверки
+команд не доказывают качество диалога.

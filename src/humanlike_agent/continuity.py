@@ -10,6 +10,49 @@ from __future__ import annotations
 import re
 
 
+def _second(history) -> dict:
+    unavailable = {"status": "clarify", "items": []}
+    # Never fall back to an older artifact when the newest one exceeds bounds.
+    candidates = [
+        (i, r)
+        for i, r in enumerate(history[-32:])
+        if isinstance(r, dict) and r.get("role") == "assistant"
+    ]
+    if not candidates:
+        return unavailable
+    index, row = candidates[-1]
+    content = row.get("content")
+    if not isinstance(content, str) or len(content) > 16384:
+        return unavailable
+    # Fenced/quoted alternatives are not an unambiguous top-level artifact.
+    if "```" in content or "~~~" in content or re.search(r"(?m)^\s*>", content):
+        return unavailable
+    headings = list(
+        re.finditer(
+            r"(?im)^(?:(Version|Вариант) ([0-9]{1,2}):|([0-9]{1,2})([.)])(?=[ \t]|$))[ \t]*",
+            content,
+        )
+    )
+    # A heading-like line in an unsupported style is ambiguous, not trailing prose.
+    possible = list(
+        re.finditer(r"(?im)^[ \t#*]*(?:(?:Version|Вариант) [0-9]+|[0-9]+[.)](?=\s|$))", content)
+    )
+    if len(headings) < 2 or len(possible) != len(headings):
+        return unavailable
+    numbers = [int(h[2] or h[3]) for h in headings]
+    styles = {(h[1].casefold() if h[1] else h[4]) for h in headings}
+    if len(styles) != 1 or numbers != list(range(1, len(headings) + 1)):
+        return unavailable
+    block = content[headings[1].end() : headings[2].start() if len(headings) > 2 else None]
+    block = block.strip()
+    if not block or len(block) > 2200:
+        return unavailable
+    return {
+        "status": "matched",
+        "items": [{"source": f"recent-{index}", "kind": "assistant", "content": block}],
+    }
+
+
 def resolve_recent(text: str, history: object) -> dict:
     if not isinstance(text, str) or len(text) > 512:
         return {"status": "no_match", "items": []}
@@ -31,6 +74,8 @@ def resolve_recent(text: str, history: object) -> dict:
         return {"status": "no_match", "items": []}
     if not isinstance(history, (list, tuple)):
         return {"status": "unavailable", "items": []}
+    if mode == "second":
+        return _second(history)
     rows = []
     for index, row in enumerate(history[-32:]):
         if not isinstance(row, dict) or row.get("role") not in {"user", "assistant", "tool"}:
@@ -48,18 +93,6 @@ def resolve_recent(text: str, history: object) -> dict:
         if candidates:
             i = candidates[-1]
             selected = rows[max(0, i - 1) : i + 3]
-    elif mode == "second":
-        assistants = [r for r in rows if r["kind"] == "assistant"]
-        if assistants:
-            # Only explicitly numbered alternatives in the most recent assistant artifact.
-            parts = re.findall(
-                r"(?:^|\n)(?:Version|Вариант) ([12]):\s*([^\n]+)",
-                assistants[-1]["content"],
-                re.IGNORECASE,
-            )
-            if [p[0] for p in parts] == ["1", "2"]:
-                selected = [{**assistants[-1], "content": parts[1][1]}]
-        status = "clarify"
     elif mode == "correction":
         corrections = [
             r
