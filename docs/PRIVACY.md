@@ -70,7 +70,10 @@ Use operating-system or volume encryption when memory confidentiality at rest is
 
 `post_llm_call` reads assistant text only to validate payload shape and measure response length; the adapter does not pass the text into `TurnOutcome` or runtime state. The adapter reports a conservative unknown host status rather than treating delivery as proof that persistence was safe.
 
-## Native 0.3.1 memory boundary
+## Native 0.4.0 memory boundary
+
+See [0.4.0 stability contracts / EN+RU](STABILITY.md) for neutral routing, exact
+conflict replacement, safe diagnostic states and compatible-reader rollback.
 
 The [native bridge](HERMES_INSTALL.md) keeps bounded volatile proposals, one-time
 confirmation challenges, admission fingerprints and last-use receipts. Pending

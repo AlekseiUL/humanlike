@@ -223,7 +223,7 @@ def test_turn_text_at_maximum_size_is_accepted() -> None:
 
     decision = _route(TurnInput(text="a" * MAX_TURN_CHARS))
 
-    assert decision.mode is Mode.SOCIAL
+    assert decision.mode is Mode.UNKNOWN
 
 
 def test_turn_text_above_maximum_size_is_rejected() -> None:

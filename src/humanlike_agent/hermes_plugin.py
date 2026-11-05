@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from .adapters.hermes import HermesAdapter
 from .persona import Persona, PersonaSpine
 from .runtime import HumanlikeRuntime, RuntimeConfig
@@ -70,8 +72,13 @@ def register(context: object) -> None:
         base = adapter.pre_llm_call(**payload)
         extra = controller.context(**payload)
         if not base:
+            controller.context_not_added(payload.get("session_id"), "adapter_unavailable")
             return None
-        return {"context": base["context"] + ("\n\n" + extra if extra else "")}
+        combined = base["context"] + ("\n\n" + extra if extra else "")
+        if len(combined) > 9999:
+            controller.context_not_added(payload.get("session_id"), "context_bounds")
+            return base
+        return {"context": combined}
 
     def finalize(**payload):
         controller.finalize(**payload)
@@ -82,9 +89,17 @@ def register(context: object) -> None:
     context.register_hook("post_llm_call", adapter.post_llm_call)
     context.register_hook("on_session_finalize", finalize)
     context.register_hook("post_gateway_admission", controller.admitted)
+    def command(raw_args, **payload):
+        response = controller.command(raw_args, **payload)
+        if raw_args.strip().casefold() in {"status", "статус"}:
+            response += "\nAdapter-wide status (not provider evidence): " + json.dumps(
+                adapter.status(), sort_keys=True
+            )
+        return response
+
     register_command(
         "humanlike",
-        controller.command,
+        command,
         description="Local memory consent, controls and RU/EN help",
         args_hint="<request>",
     )

@@ -207,7 +207,7 @@ print(json.dumps({"hooks": list(host.hooks), "value": entry_point.value}))
     }
     assert (tmp_path / "native-plugin" / "humanlike_agent" / "native.py").is_file()
     assert route["ok"] is True
-    assert evaluation["summary"] == {"failed": 0, "passed": 40, "total": 40}
+    assert evaluation["summary"] == {"failed": 0, "passed": 44, "total": 44}
     assert doctor == {
         "command": "doctor",
         "memory_enabled": False,

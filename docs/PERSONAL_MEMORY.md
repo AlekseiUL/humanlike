@@ -1,14 +1,17 @@
 # Consented memory and conversation references — developer API
 
-This is the lower-level API introduced in 0.2.0. For callback-free 0.3.1 setup,
+This is the lower-level API introduced in 0.2.0. For callback-free 0.4.0 setup,
 use [Native Hermes installation and controls](HERMES_INSTALL.md). The old API
 remains available; its English grammar is supplemented by the closed RU/EN
-reply-length vocabulary. / Для готового подключения 0.3.1 используйте
+reply-length vocabulary. / Для готового подключения 0.4.0 используйте
 [инструкцию EN/RU](HERMES_INSTALL.md); ниже описан прежний API разработчика.
 
 [English](#english) · [Русский](#русский)
 
 ## English
+
+See [0.4.0 stability contracts / EN+RU](STABILITY.md) for neutral routing, exact
+conflict replacement, safe diagnostic states and compatible-reader rollback.
 
 ### What is available
 
@@ -19,7 +22,7 @@ source evidence, and available on later turns. `ConversationContext` separately
 retrieves bounded references from history explicitly supplied by the host.
 
 Defaults are unchanged: the installed Hermes plugin does not start capturing
-personal information. This section describes the programmatic host integration, not the 0.3.1 native
+personal information. This section describes the programmatic host integration, not the 0.4.0 native
 Hermes hook, slash command, TOML flag, or automatic archive reader. The existing
 `memory_enabled` option provisions the legacy ledger; it is **not owner consent**
 for this pipeline. No cloud memory service, model, credential or network dependency
@@ -119,16 +122,19 @@ A teaching preference and an email preference have separate groups; neither is a
 automatic fallback for the other. `recall(key, domain=..., condition=...)` is an exact
 bounded lookup, not an unrestricted semantic search.
 
-Change/correct/confirm require `HumanEvent.target_id` identifying an active atom in
+Single-target change/correct/confirm use `HumanEvent.target_id` identifying an active atom in
 the **same scope, key, domain, condition and kind**. A new assertion of an equal
 value confirms it. A new incompatible assertion becomes `contradicts`, leaving both
 claims inspectable; confident recall returns no hit until the conflict is resolved.
 A change records `supersedes`; a correction records `corrects` and labels the old
 claim erroneous. Both hide their target from current recall, but preserve provenance
 until forgotten. This is not retroactive rewriting of source history. Confirmations
-have their own event evidence and never multiply on replay. Resolve multiple
-conflicting targets with separate explicit corrections; the library does not choose
-which source to trust.
+have their own event evidence and never multiply on replay. Since 0.4.0, an explicit
+correction may instead supply `HumanEvent.target_ids` containing the complete active
+group. The transaction rejects partial, stale, foreign or cross-scope selections.
+Native correction selects this exact group and retains every historical version.
+Native ordinary conflicts offer a choice before storage; the lower-level assertion
+API still records contradictions rather than guessing which source to trust.
 
 ### Provider-neutral extractor boundary
 
@@ -306,7 +312,7 @@ python examples/consented_memory.py
 ### Управление и гарантии
 
 - `inspect(after=..., limit=...)` — просмотр версий, условий и источников, до 50 за страницу.
-- В native 0.3.1 обычные команды дают страницы по пять версий; SDK для управления
+- В native 0.4.0 обычные команды дают страницы по пять версий; SDK для управления
   не нужен. `inspect_page` возвращает также активные ID, наличие следующей страницы
   и политику снимка; `management_targets` выбирает полную ограниченную область.
 - `capture(..., expected_policy=...)` проверяет согласие, эпоху и watermark перед

@@ -29,11 +29,12 @@ def test_package_version_has_one_setuptools_source() -> None:
     assert pyproject["tool"]["setuptools"]["dynamic"]["version"] == {
         "attr": "humanlike_agent.__version__"
     }
-    assert humanlike_agent.__version__ == "0.3.1"
+    assert humanlike_agent.__version__ == "0.4.0"
 
 
 def test_mode_values_are_stable() -> None:
     assert [mode.value for mode in Mode] == [
+        "unknown",
         "social",
         "support",
         "task",
@@ -48,6 +49,7 @@ def test_mode_values_are_stable() -> None:
 
 def test_social_move_values_are_stable() -> None:
     assert [move.value for move in SocialMove] == [
+        "neutral",
         "connect",
         "acknowledge",
         "listen",

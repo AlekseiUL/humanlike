@@ -1,6 +1,6 @@
 # Compatibility
 
-This document describes the verified code contract for beta `0.3.x`. It is deliberately narrower than what may happen to work in an individual environment.
+This document describes the verified code contract for beta `0.4.x`. It is deliberately narrower than what may happen to work in an individual environment.
 
 ## Runtime baseline
 
@@ -11,7 +11,7 @@ This document describes the verified code contract for beta `0.3.x`. It is delib
 | Model providers | Host-neutral | Core makes no LLM or network call |
 | Languages | RU and EN routing rules | Other locales use the same deterministic API but are not a declared routing-quality target |
 | Packaging | Source tree, editable install, wheel/sdist design | Build tooling is a development extra |
-| Native Windows | Core, CLI, profile loader, memory-off Hermes plugin | Optional SQLite memory ledger is not enabled on Windows in `0.3.x` |
+| Native Windows | Core, CLI, profile loader, memory-off Hermes plugin | Optional SQLite memory ledger is not enabled on Windows in `0.4.x` |
 | Persistent memory | POSIX local filesystem only | Requires `fcntl`, owner/mode semantics, local locking, and atomic replacement |
 
 ## Operating systems
@@ -26,7 +26,7 @@ An intended environment is not automatically a certified platform. Run the full 
 
 Native Windows supports the standard-library core, `humanlike route`, `humanlike eval`, `humanlike doctor`, read-only persona/config/foundation loading, and the wheel-installed Hermes plugin with memory disabled. Windows loaders reject lexical traversal, symlinks, junctions and other reparse points, enforce file bounds, and compare file identity before and after opening.
 
-The optional `SQLiteMemoryLedger` remains unavailable on native Windows in `0.3.x`. It depends on POSIX owner/mode checks, descriptor-relative traversal, `flock`, and directory durability semantics. Enabling `memory_enabled = true` on Windows fails closed instead of silently using weaker storage guarantees.
+The optional `SQLiteMemoryLedger` remains unavailable on native Windows in `0.4.x`. It depends on POSIX owner/mode checks, descriptor-relative traversal, `flock`, and directory durability semantics. Enabling `memory_enabled = true` on Windows fails closed instead of silently using weaker storage guarantees.
 
 WSL2 provides the POSIX interfaces required by the complete stack. Keep memory state on the WSL Linux filesystem rather than a mounted Windows or synchronized directory.
 
@@ -46,7 +46,7 @@ Network filesystems, cloud-synchronized folders, shared volumes, removable drive
 ## Hermes host contract
 
 The original memory-off four-hook checkpoint used Hermes `v0.21.0`.
-The 0.3.1 native bridge was exercised against Hermes 0.22.6, source `f0d94882`,
+The 0.4.0 native bridge was exercised against Hermes 0.22.6, source `f0d94882`,
 in an isolated synthetic home using real `PluginManager`, `PluginContext`,
 `SessionSource` and `invoke_plugin_command` interfaces. This is not a live transport test.
 
@@ -75,11 +75,14 @@ real-interface smoke, and a separately authorized live delivery canary. Local
 
 ## CLI compatibility
 
+See [0.4.0 stability contracts / EN+RU](STABILITY.md) for neutral routing, exact
+conflict replacement, safe diagnostic states and compatible-reader rollback.
+
 ### Optional 0.2.0 host API
 
 `PersonalMemory`, `ConversationContext`, `AuthorizedHost` and
 `HermesAdapter.prepare_authorized` remain additive developer APIs. Integrators of
-that lower-level path still own authorization/history callbacks. The 0.3.1 native
+that lower-level path still own authorization/history callbacks. The 0.4.0 native
 bridge supplies these bindings for its documented supported surface; it does not
 change the legacy `memory_enabled` TOML option into owner consent. See the
 [developer guide](PERSONAL_MEMORY.md) and [native setup](HERMES_INSTALL.md).

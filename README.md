@@ -6,7 +6,7 @@
 
 [English](#english) · [Русский](#русский) · [Documentation](#documentation) · [License](#license)
 
-> **Status: public beta (`0.3.1`), licensed under MIT.** The API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
+> **Status: public beta (`0.4.0`), licensed under MIT.** The API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
 
 ```mermaid
 flowchart LR
@@ -20,6 +20,18 @@ flowchart LR
 ## English
 
 Humanlike is a behavioral planning layer for AI agents. It classifies each turn, selects a social and cognitive mode, assembles bounded guidance, and returns privacy-aware metadata. The host remains responsible for model calls, tools, transport, output delivery, transcript retention, and policy enforcement.
+
+### Stability in 0.4.0
+
+- Unknown tasks get neutral guidance, not forced social brevity. Communication
+  advice is subordinate to the current request; privacy/authority stay enforced.
+- Conflicting preferences ask you to replace the exact scope or choose another.
+  Explicit correction resolves old conflicts and keeps provenance/history.
+- Safe status distinguishes prepared context, missing context and storage/config
+  failures. Preparation is not provider receipt or model compliance.
+
+See [contracts, limits and rollback / EN+RU](docs/STABILITY.md).
+Model-quality improvement: **NOT_PROVEN**. New model A/B and live Telegram: **NOT_RUN**.
 
 ### What's fixed in 0.3.1
 
@@ -51,7 +63,7 @@ Start with [EN/RU setup and controls](docs/HERMES_INSTALL.md). The older [develo
 - Persona anchoring, repetition control, calibrated stance, and drift signals.
 - Optional evidence-aware SQLite memory behind explicit host-controlled consent.
 - Opt-in explicit personal-memory capture, correction/forget/revocation controls, and bounded conversation references through an authenticated host API.
-- A 40-case offline conformance suite for routing, privacy, context budgets, policy, disclosure, stance, memory, and drift.
+- A 44-case offline conformance suite for routing, privacy, context budgets, policy, disclosure, stance, memory, and drift.
 - A reference Hermes directory plugin with `pre_llm_call`, `transform_llm_output`, `post_llm_call`, and `on_session_finalize` hooks.
 - Stable JSON CLI commands: `route`, `doctor`, `eval`, and `export-plugin`.
 
@@ -61,7 +73,7 @@ Humanlike is not a model, chatbot UI, autonomous agent host, network service, or
 
 ### Quickstart
 
-Requirements: Git and Python 3.11 or newer. Linux and macOS support the complete stack. Native Windows supports the core runtime, CLI, hardened read-only profile loading, read-only conversation references, and the memory-off Hermes plugin. The optional SQLite memory ledger remains POSIX-only in `0.3.x`.
+Requirements: Git and Python 3.11 or newer. Linux and macOS support the complete stack. Native Windows supports the core runtime, CLI, hardened read-only profile loading, read-only conversation references, and the memory-off Hermes plugin. The optional SQLite memory ledger remains POSIX-only in `0.4.x`.
 
 Linux and macOS:
 
@@ -173,6 +185,18 @@ The installed runtime has no third-party Python dependencies. Development, build
 
 Humanlike — публичная бета-библиотека под лицензией MIT. Это детерминированный поведенческий слой для ИИ-агентов: он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
 
+### Стабильность в 0.4.0
+
+- Неизвестная задача получает нейтральный маршрут, а не короткий социальный ответ.
+  Стиль — рекомендация; текущая просьба важнее, права и приватность проверяются кодом.
+- При конфликте памяти можно заменить выбранную область или задать другую.
+  Исправление разрешает старые противоречия, сохраняя историю и источники.
+- Статус различает подготовленный контекст, его отсутствие и ошибки хранения/настроек.
+  Подготовка не доказывает получение провайдером или учёт моделью.
+
+[Контракты, ограничения и откат EN/RU](docs/STABILITY.md).
+Улучшение качества **NOT_PROVEN**. Новый модельный A/B и живой Telegram: **NOT_RUN**.
+
 ### Что исправлено в 0.3.1
 
 - Второй вариант сохраняется целиком: заголовок, текст и условия. При неоднозначности
@@ -203,7 +227,7 @@ Humanlike — публичная бета-библиотека под лицен
 - Удерживает персону, снижает повторы, отслеживает позицию и поведенческий дрейф.
 - Поддерживает опциональную SQLite-память только с явным согласием основной системы.
 - Даёт управляемый захват явно указанных предпочтений, исправление, забывание и ограниченное восстановление контекста через проверенный host API.
-- Запускает офлайн-проверку из 40 кейсов.
+- Запускает офлайн-проверку из 44 кейсов.
 - Даёт эталонный адаптер для Hermes и JSON CLI-команды `route`, `doctor`, `eval`, `export-plugin`.
 
 ### Чего не делает
@@ -212,7 +236,7 @@ Humanlike — публичная бета-библиотека под лицен
 
 ### Быстрый старт
 
-Нужны Git и Python 3.11 или новее. Linux и macOS поддерживают полный стек. В нативном Windows работают основной runtime, CLI, защищённая загрузка профиля, чтение переданного контекста и Hermes-плагин с выключенной памятью. Опциональная SQLite-память в ветке `0.3.x` остаётся POSIX-only.
+Нужны Git и Python 3.11 или новее. Linux и macOS поддерживают полный стек. В нативном Windows работают основной runtime, CLI, защищённая загрузка профиля, чтение переданного контекста и Hermes-плагин с выключенной памятью. Опциональная SQLite-память в ветке `0.4.x` остаётся POSIX-only.
 
 Linux и macOS:
 

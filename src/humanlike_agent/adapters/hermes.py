@@ -324,13 +324,27 @@ class HermesAdapterConfig:
 class HermesAdapter:
     """Translate supported Hermes hook payloads without retaining host text."""
 
-    __slots__ = ("_active_turns", "_lock", "_runtime", "_prepared_scopes")
+    __slots__ = ("_active_turns", "_lock", "_runtime", "_prepared_scopes", "_status")
 
     def __init__(self, runtime: object) -> None:
+        self._status = {
+            "stage": "not_prepared",
+            "reason": "config_profile_not_loaded"
+            if isinstance(runtime, _NeutralRuntime) else "not_called",
+        }
         self._runtime = runtime
         self._active_turns: OrderedDict[str, str] = OrderedDict()
         self._prepared_scopes: dict[str, MemoryScope] = {}
         self._lock = RLock()
+
+    def status(self) -> dict[str, str]:
+        """Latest adapter-wide outcome, fixed codes only; no provider receipt."""
+        with self._lock:
+            return dict(self._status)
+
+    def _diagnose(self, stage: str, reason: str) -> None:
+        with self._lock:
+            self._status = {"stage": stage, "reason": reason}
 
     def __repr__(self) -> str:
         return "HermesAdapter(runtime=<private>)"
@@ -357,6 +371,7 @@ class HermesAdapter:
         turn_id = _host_string(payload, "turn_id", limit=128)
         user_message = _host_string(payload, "user_message", limit=MAX_TURN_CHARS)
         if session_id is None or turn_id is None or user_message is None:
+            self._diagnose("not_prepared", "invalid_payload")
             return None
         locale = payload.get("locale", "und")
         if not isinstance(locale, str) or not locale or len(locale) > 32:
@@ -364,6 +379,7 @@ class HermesAdapter:
         with self._lock:
             prior_turn = self._active_turns.get(session_id)
             if prior_turn == turn_id:
+                self._diagnose("not_prepared", "duplicate_turn")
                 return None
             if prior_turn is not None:
                 try:
@@ -377,10 +393,12 @@ class HermesAdapter:
                         memory_records=(),
                     )
                 except Exception:
+                    self._diagnose("not_prepared", "previous_turn_failed")
                     return None
                 del self._active_turns[session_id]
                 self._prepared_scopes.pop(session_id, None)
             elif len(self._active_turns) >= _MAX_ACTIVE_SESSIONS:
+                self._diagnose("not_prepared", "session_limit")
                 return None
             try:
                 plan = self._runtime.prepare(
@@ -406,13 +424,17 @@ class HermesAdapter:
                         ),
                         memory_records=(),
                     )
+                    self._diagnose("not_prepared", "context_bounds")
                     return None
                 self._active_turns[session_id] = turn_id
                 self._prepared_scopes[session_id] = getattr(
                     plan, "memory_scope", MemoryScope.ITEM_NO_SAVE
                 )
+                self._diagnose("prepared", "returned_to_hook")
                 return {"context": context}
             except Exception:
+                self._diagnose("not_prepared", "config_profile_not_loaded"
+                               if isinstance(self._runtime, _NeutralRuntime) else "prepare_failed")
                 return None
 
     def prepare_authorized(
@@ -563,6 +585,10 @@ def register(
         except Exception:
             adapter = HermesAdapter(_NeutralRuntime())
     adapter.register(context)
+    register_command = getattr(context, "register_command", None)
+    if callable(register_command):
+        register_command("humanlike-status", lambda *a, **kw: str(adapter.status()),
+                         description="Safe adapter status; not provider/model evidence")
 
 
 __all__ = [

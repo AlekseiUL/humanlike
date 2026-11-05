@@ -464,9 +464,18 @@ def _classify(
         return Mode.TASK, SocialMove.ACT, "route.privacy_control", 0.98
     if _has_explicit_save(text):
         return Mode.TASK, SocialMove.ACT, "route.task", 0.92
-    if _contains(text, _GREETING_PATTERNS):
+    if _contains(text, _GREETING_PATTERNS) and all(
+        not re.search(r"\w", _without_patterns(view, _GREETING_PATTERNS + (
+            r"\b(?:bro|friend|again|бро|друг|снова)\b",
+        ))) for view in _views(text)
+    ):
         return Mode.SOCIAL, SocialMove.CONNECT, "route.social_greeting", 0.90
-    return Mode.SOCIAL, SocialMove.ACKNOWLEDGE, "route.social_fallback", 0.55
+    if all(re.fullmatch(
+        r"(?:thanks|thank you|got it|how are you|interesting|well, that happened|"
+        r"спасибо|ясно|понятно|как дела)[^\w]*", view
+    ) for view in _views(text)):
+        return Mode.SOCIAL, SocialMove.ACKNOWLEDGE, "route.social_acknowledge", 0.90
+    return Mode.UNKNOWN, SocialMove.NEUTRAL, "route.unknown", 0.0
 
 
 def _constraints(
@@ -524,8 +533,8 @@ def route_turn(turn: TurnInput) -> RouteDecision:
     if turn.elapsed_seconds is not None and turn.elapsed_seconds > _LONG_GAP_SECONDS:
         reason_codes.append("reentry.long_gap")
 
-    response_budget = _BUDGETS[mode]
-    if "brief" in constraints:
+    response_budget = _BUDGETS.get(mode)
+    if "brief" in constraints and response_budget is not None:
         response_budget = min(response_budget, 520)
 
     return RouteDecision(

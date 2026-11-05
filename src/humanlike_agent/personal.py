@@ -74,7 +74,8 @@ def _label(value: str, name: str) -> str:
 class HumanEvent:
     """Host-attested event; sequence is monotonic within the configured scope.
 
-    domain/condition and target_id come from the host's explicit UI controls.
+    domain/condition and target_id or target_ids come from explicit host UI controls.
+    target_ids binds an entire active group for correction, never arbitrary subsets.
     asserted_by_owner must be false for quotes, fiction, forwarded or internal
     messages. no_save applies before any extractor is called.
     """
@@ -92,6 +93,7 @@ class HumanEvent:
     domain: str = "general"
     condition: str = "always"
     target_id: str | None = None
+    target_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         for name in (
@@ -105,6 +107,13 @@ class HumanEvent:
         ):
             if _label(getattr(self, name), name) != getattr(self, name):
                 raise ValueError("event labels must be canonical")
+        if (not isinstance(self.target_ids, tuple) or len(self.target_ids) > 256
+                or len(set(self.target_ids)) != len(self.target_ids)):
+            raise ValueError("invalid group selection")
+        for target in self.target_ids:
+            _label(target, "target_ids")
+        if self.target_ids and self.target_id is not None:
+            raise ValueError("choose single or group selection")
         if self.target_id is not None:
             _label(self.target_id, "target_id")
         if type(self.sequence) is not int or not 0 < self.sequence < 2**63:
@@ -525,7 +534,7 @@ class PersonalMemory:
 
     @staticmethod
     def _active(facts: tuple[PersonalFact, ...]) -> tuple[PersonalFact, ...]:
-        replaced = {f.target_id for f in facts if f.relation in {"supersedes", "corrects"}}
+        replaced = {target for f in facts for target in f.record.supersedes}
         return tuple(
             f for f in facts if f.record.record_id not in replaced and f.relation != "confirms"
         )
@@ -538,7 +547,13 @@ class PersonalMemory:
         target = next((f for f in active if f.record.record_id == event.target_id), None)
         if facts and event.observed_at < max(f.record.evidence.observed_at for f in facts):
             return CaptureResult("stale")
-        if candidate.operation != "remember":
+        group_targets = tuple(f.record.record_id for f in active)
+        if event.target_ids:
+            if (candidate.operation != "correct" or set(event.target_ids) != set(group_targets)
+                    or any(f.record.tags != (candidate.kind,) for f in active)):
+                return CaptureResult("invalid_target")
+            relation = "corrects"
+        elif candidate.operation != "remember":
             if target is None or target.record.tags != (candidate.kind,):
                 return CaptureResult("invalid_target")
             if candidate.operation == "confirm" and candidate.value != target.record.value:
@@ -575,7 +590,9 @@ class PersonalMemory:
             event.observed_at,
             Evidence("authorized_human", _digest(event.text), event.observed_at, event.event_id),
             session_id=self._session,
-            supersedes=(target_id,) if relation in {"supersedes", "corrects"} and target_id else (),
+            supersedes=event.target_ids or (
+                (target_id,) if relation in {"supersedes", "corrects"} and target_id else ()
+            ),
             tags=(candidate.kind,),
         )
         if record.supersedes:
@@ -627,9 +644,8 @@ class PersonalMemory:
             active_ids = frozenset(
                 f.record.record_id for f in facts[:limit]
                 if f.relation != "confirms" and not db.execute(
-                    "SELECT 1 FROM personal_records p JOIN memory_records r "
-                    "ON r.record_id=p.record_id WHERE p.namespace=? AND p.target_id=? "
-                    "AND p.relation IN ('supersedes', 'corrects') "
+                    "SELECT 1 FROM memory_supersessions s JOIN memory_records r "
+                    "ON r.record_id=s.superseder_id WHERE r.profile_id=? AND s.target_id=? "
                     "AND r.deleted_at IS NULL LIMIT 1",
                     (self._namespace, f.record.record_id),
                 ).fetchone()
@@ -643,7 +659,7 @@ class PersonalMemory:
         """Bounded native scopes, independent of inspection pages and consent.
 
         A whole-lineage forget needs one representative per domain, including
-        conflicts; corrections require a single active fact. No recall/injection.
+        conflicts; corrections select every active fact in the exact group. No recall/injection.
         Existing group limits still apply. Unsupported conditions are untouched.
         """
         self._require("inspect")

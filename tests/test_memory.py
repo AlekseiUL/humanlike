@@ -175,7 +175,7 @@ def test_direct_constructors_canonicalize_nfc_digest_tags_and_timezones() -> Non
         (lambda: _record(valid_until=_NOW - timedelta(days=2)), "valid"),
         (lambda: _record(tags=tuple(f"tag-{index}" for index in range(17))), "tags"),
         (
-            lambda: _record(supersedes=tuple(f"id-{index}" for index in range(33))),
+            lambda: _record(supersedes=tuple(f"id-{index}" for index in range(257))),
             "supersedes",
         ),
         (lambda: _query(at=datetime(2026, 1, 1)), "timezone"),

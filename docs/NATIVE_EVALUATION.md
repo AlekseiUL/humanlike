@@ -77,6 +77,14 @@ regressions and real native-interface synthetic dispatch. No new model calls or
 blinded A/B were run. The scores above apply to the 0.3.0 experiment, not a claim
 of improved quality in 0.3.1. Live Telegram pilot remains **NOT_RUN**.
 
+## Stability increment 0.4.0
+
+The neutral/advisory rendering and conflict/status changes have deterministic and
+synthetic native-interface checks only. No new model/provider calls were made.
+The earlier A/B scores do not evaluate this new guidance: quality improvement is
+**NOT_PROVEN**, new model A/B and live Telegram are **NOT_RUN**. See
+[stability contracts and separate approval requirements](STABILITY.md).
+
 ## Русский
 
 Проверка проведена: 12 синтетических диалогов, 24 ответа и 12 слепых оценок одной

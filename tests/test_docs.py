@@ -173,7 +173,7 @@ def test_readme_quickstart_commands_execute_offline() -> None:
         assert completed.stdout.count("\n") == 1
         payload = json.loads(completed.stdout)
         if command[0] == "eval":
-            assert payload["summary"] == {"failed": 0, "passed": 40, "total": 40}
+            assert payload["summary"] == {"failed": 0, "passed": 44, "total": 44}
         elif command[0] == "route":
             assert payload["ok"] is True
             assert payload["route"]["mode"] == "task"

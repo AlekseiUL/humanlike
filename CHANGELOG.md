@@ -6,6 +6,34 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-05
+
+### Changed / Изменено
+
+- Explicit unknown/neutral fallback with nullable advisory response budget; positive
+  social cues retained. Route guidance is versioned `humanlike-route-guidance/v2`,
+  subordinate to current requests, separate from enforced privacy/authority/bounds.
+- Native conflict choice instead of silently accumulating contradictory preferences;
+  group correction uses exact scoped supersession history and fresh confirmation.
+  Existing 256-version cap remains; supersession capacity expands to 256. No SQLite
+  schema migration; older readers may reject large corrections, so rollback must
+  retain a compatible reader and current deletion/replay fences.
+- Bounded safe adapter/native status for unavailable configuration, memory and
+  missing context; prepared is not submitted, provider receipt or model-used proof.
+- Неизвестные задачи больше не считаются социальными по умолчанию. Стиль и длина —
+  рекомендации, текущая просьба важнее; права записи и приватность проверяются кодом.
+- Конфликт предлагает замену области или отдельное предпочтение. Исправление
+  сохраняет историю; нужен новый одноразовый ответ. No-save не зависит от маршрута.
+- Диагностика не раскрывает текст, пути и исключения. Ошибка не объявляется записью.
+
+### Verification limits / Границы проверки
+
+Offline regressions, synthetic native dispatch and non-editable package checks;
+no new model experiment or live transport. Model-quality improvement **NOT_PROVEN**;
+live Telegram and new A/B **NOT_RUN**. No live activation, tag or PyPI publication.
+[Details / Подробности](docs/STABILITY.md).
+
+
 ## [0.3.1] - 2026-11-05
 
 ### Fixed — English
