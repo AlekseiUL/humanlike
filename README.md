@@ -21,6 +21,19 @@ flowchart LR
 
 Humanlike is a behavioral planning layer for AI agents. It classifies each turn, selects a social and cognitive mode, assembles bounded guidance, and returns privacy-aware metadata. The host remains responsible for model calls, tools, transport, output delivery, transcript retention, and policy enforcement.
 
+### What's new in 0.2.0
+
+- **Consented personal memory.** Save explicitly stated preferences, goals and interests in the existing SQLite ledger, with source evidence and retrieval on later turns. Capture is off by default and requires the owner's consent and host-side authorization.
+- **Changes without losing meaning.** Separate confirmation, a changed preference, correction of an incorrect record, and an unresolved contradiction. Domain and condition keep context-specific preferences separate; stale or repeated events cannot silently replace newer knowledge.
+- **Owner controls and safe forgetting.** Inspect, correct, forget a fact's version history, or disable memory. No-save is checked before extraction and before persistence. Revocation and replay guards reject late results after forgetting or disabling, including after the ledger is reopened.
+- **Bounded conversation continuity.** Recover references to an earlier artifact and actual past tool outcomes from host-authorized history for continuation requests. Unrelated requests, quoted cues and weak matches do not reactivate an old task; the canonical conversation is not rewritten.
+- **Explicit host integration.** `PersonalMemory`, `AuthorizedHost` and `HermesAdapter.prepare_authorized(...)` provide the new integration path. Updating the stock plugin or enabling the legacy ledger does not activate personal capture. No mandatory cloud service, model or third-party runtime dependency is added.
+- **Runnable examples and regression coverage.** A synthetic end-to-end example exercises persistence, reopening, correction, forgetting, no-save and context recall. Added tests cover authorization, replay, concurrent revocation, migration compatibility and installed-package behavior. The integration guide is available in English and Russian.
+
+**Limits remain explicit:** capture currently uses English command words with Unicode values, not free-form extraction from ordinary conversation. Durable memory remains POSIX-only and unencrypted; forgetting does not erase host/provider transcripts or backups. Model answer-quality A/B is **NOT_RUN**: these functional additions are not evidence of more natural LLM answers.
+
+Start with the [EN/RU integration guide](docs/PERSONAL_MEMORY.md), the [runnable synthetic example](examples/consented_memory.py), and the [bilingual 0.2.0 changelog](CHANGELOG.md#020---2026-11-05).
+
 ### What it provides
 
 - Deterministic RU/EN routing across cognitive modes and social moves.
@@ -149,6 +162,19 @@ The installed runtime has no third-party Python dependencies. Development, build
 ## Русский
 
 Humanlike — публичная бета-библиотека под лицензией MIT. Это детерминированный поведенческий слой для ИИ-агентов: он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
+
+### Что нового в 0.2.0
+
+- **Персональная память по согласию.** Явно указанные предпочтения, цели и интересы сохраняются в существующем SQLite-хранилище со ссылками на источники и могут использоваться в следующих репликах. Запись по умолчанию выключена: нужны согласие владельца и проверка прав на стороне основной системы.
+- **Различение смысла изменений.** Подтверждение, новое предпочтение, исправление ошибочной записи и неразрешённое противоречие обрабатываются отдельно. Предметная область и условие разделяют контекстные предпочтения; устаревшее или повторное событие не может незаметно заменить более свежие сведения.
+- **Управление памятью и безопасное забывание.** Можно просмотреть записи, исправить их, забыть всю историю выбранного факта или отключить память. Запрет сохранения проверяется до извлечения и перед записью. Отзыв разрешения и защита от повторов отклоняют запоздавшие результаты после забывания или отключения — в том числе после повторного открытия хранилища.
+- **Контекст продолжения разговора.** По запросу на продолжение библиотека возвращает ограниченные ссылки на прежний материал и реальные результаты инструментов из истории, доступ к которой разрешила основная система. Несвязанные запросы, цитаты и слабые совпадения не возобновляют старую задачу; исходная переписка не переписывается.
+- **Явное подключение к основной системе.** Новый путь интеграции использует `PersonalMemory`, `AuthorizedHost` и `HermesAdapter.prepare_authorized(...)`. Обновление обычного плагина или включение прежнего хранилища не запускает персональный захват. Обязательные облачные сервисы, модели и сторонние runtime-зависимости не добавлены.
+- **Исполняемый пример и проверки регрессий.** Сквозной пример на вымышленных данных проверяет сохранение, повторное открытие, исправление, забывание, запрет записи и восстановление контекста. Новые тесты покрывают права доступа, повторы, отзыв разрешения во время обработки, совместимость хранилища и работу установленного пакета. Инструкция по интеграции доступна на английском и русском.
+
+**Ограничения указаны прямо:** запись пока использует английские командные слова со значениями Unicode, а не свободное извлечение фактов из обычной беседы. Постоянная память остаётся POSIX-only и не шифруется; забывание не удаляет переписку и резервные копии основной системы или провайдера. Слепое сравнение качества ответов модели — **NOT_RUN**: новые функции сами по себе не доказывают, что LLM стала общаться естественнее.
+
+Начните с [инструкции EN/RU](docs/PERSONAL_MEMORY.md), [исполняемого примера на вымышленных данных](examples/consented_memory.py) и [двуязычной истории изменений 0.2.0](CHANGELOG.md#020---2026-11-05).
 
 ### Что умеет
 

@@ -8,24 +8,67 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 ## [0.2.0] - 2026-11-05
 
-### Added
+### Added — English
 
-- Opt-in `PersonalMemory` over the existing SQLite ledger: explicit preferences,
-  goals and interests, host-authorized consent, inspect/correct/forget/disable.
-- Scoped confirms/supersedes/corrects/contradicts relations, source evidence,
-  replay fences and durable policy epochs that reject late saves after revocation.
+- Opt-in `PersonalMemory` over the existing SQLite ledger: explicitly stated
+  preferences, goals and interests, source evidence, later recall and owner consent
+  checked through host authorization.
+- Separate confirms/supersedes/corrects/contradicts relations with domain and
+  condition scopes; stale-event and replay guards preserve newer knowledge.
+- Inspect/correct/forget/disable controls. Forgetting erases the selected fact's
+  version history; no-save is checked before extraction and persistence. Durable
+  policy epochs reject late saves after forgetting or disabling, including after
+  reopening the ledger.
 - Bounded read-only `ConversationContext` for exact-anchor continuation requests,
-  with artifact references and host-observed past tool outcomes.
-- Programmatic `HermesAdapter.prepare_authorized` host bridge, synthetic executable
-  lifecycle example, adversarial/concurrency/migration tests and EN/RU documentation.
+  with artifact references and host-observed past tool outcomes. Unrelated requests,
+  quoted cues and weak matches do not reactivate old tasks or rewrite history.
+- Explicit `AuthorizedHost` and `HermesAdapter.prepare_authorized(...)` integration,
+  a runnable synthetic lifecycle example and an EN/RU integration guide.
+- Regression coverage for authorization, no-save, replay, concurrent revocation,
+  scope isolation, old/new ledger compatibility and installed-package behavior.
 
-### Boundaries
+### Boundaries — English
 
-- Existing APIs, stock plugin defaults and zero mandatory dependencies remain.
-  Automatic capture is not activated by TOML or hook payload flags.
-- Memory remains POSIX-only. Explicit capture uses a documented command grammar;
-  free-form conversational extraction and LLM answer-quality improvement are not claimed.
-- Model A/B: NOT_RUN. Offline functional comparisons are not human-quality scores.
+- Existing APIs, stock plugin defaults and zero mandatory runtime dependencies remain.
+  Personal capture is off by default; legacy TOML settings or untrusted hook payload
+  flags do not enable it. Trusted host integration and owner consent are required.
+- Durable memory remains POSIX-only and unencrypted. Explicit capture uses English
+  command words with Unicode values, not free-form extraction from ordinary speech.
+  Forgetting does not delete host/provider transcripts or backups.
+- Model A/B: **NOT_RUN**. Offline functional tests do not establish more natural or
+  higher-quality LLM answers. No mandatory cloud service or model is added.
+
+### Добавлено — Русский
+
+- Опциональная `PersonalMemory` поверх существующего SQLite-хранилища: явно указанные
+  предпочтения, цели и интересы, источники, последующее использование записей и
+  согласие владельца с проверкой прав на стороне основной системы.
+- Раздельные отношения confirms/supersedes/corrects/contradicts с предметной областью
+  и условием применения; защита от устаревших и повторных событий сохраняет более
+  свежие сведения.
+- Просмотр, исправление, забывание и отключение. Забывание удаляет историю версий
+  выбранного факта; запрет сохранения проверяется до извлечения и перед записью.
+  Сохранённая версия политики отклоняет поздние результаты после забывания или
+  отключения, в том числе после повторного открытия хранилища.
+- Ограниченная `ConversationContext` для запросов на продолжение с точной привязкой
+  к прежнему материалу и реальным результатам инструментов. Несвязанные запросы,
+  цитаты и слабые совпадения не возобновляют старую задачу и не переписывают историю.
+- Явная интеграция через `AuthorizedHost` и `HermesAdapter.prepare_authorized(...)`,
+  исполняемый пример на вымышленных данных и инструкция EN/RU.
+- Проверки регрессий: права доступа, запрет записи, повторы, отзыв разрешения во время
+  обработки, изоляция областей, совместимость старого и нового хранилища и работа
+  установленного пакета.
+
+### Ограничения — Русский
+
+- Прежние API, настройки обычного плагина и отсутствие обязательных runtime-зависимостей
+  сохранены. Персональная запись по умолчанию выключена: прежних TOML-настроек или
+  флагов в недоверенном сообщении недостаточно. Нужны доверенная интеграция и согласие владельца.
+- Постоянная память остаётся POSIX-only и не шифруется. Запись использует английские
+  командные слова со значениями Unicode, а не свободное извлечение из обычной речи.
+  Забывание не удаляет переписку и резервные копии основной системы или провайдера.
+- Модельное A/B: **NOT_RUN**. Офлайн-тесты функций не доказывают, что ответы LLM стали
+  естественнее или качественнее. Обязательный облачный сервис или модель не добавлены.
 
 ## [0.1.2] - 2026-09-04
 
