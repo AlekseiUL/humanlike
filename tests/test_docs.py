@@ -22,6 +22,7 @@ REQUIRED_DOCUMENTS = (
     "docs/PRIVACY.md",
     "docs/COMPATIBILITY.md",
     "docs/HERMES_INSTALL.md",
+    "docs/NATIVE_EVALUATION.md",
     "docs/THREAT_MODEL.md",
 )
 
@@ -106,34 +107,21 @@ def test_documented_platform_and_hermes_compatibility_are_explicit() -> None:
     assert "точное полное утверждение о биологической человечности" in design
 
 
-def test_hermes_wheel_install_uses_runtime_python_and_entrypoint_validation() -> None:
-    install = (REPOSITORY_ROOT / "docs" / "HERMES_INSTALL.md").read_text(
-        encoding="utf-8"
-    )
+def test_native_install_exports_runtime_without_mutating_hermes_environment() -> None:
+    install = (REPOSITORY_ROOT / "docs" / "HERMES_INSTALL.md").read_text(encoding="utf-8")
     readme = (REPOSITORY_ROOT / "README.md").read_text(encoding="utf-8")
-
-    install_commands = (
-        'HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"',
-        'uv pip install --python "$HERMES_PYTHON"',
-        "hermes plugins enable humanlike-agent-kit --no-allow-tool-override",
-        "hermes plugins show humanlike-agent-kit",
-    )
-    lifecycle_commands = (
-        "hermes plugins disable humanlike-agent-kit",
-        'uv pip uninstall --python "$HERMES_PYTHON" humanlike-agent-kit',
-    )
-    for command in (*install_commands, *lifecycle_commands):
-        assert command in install
-    for command in install_commands:
-        assert command in readme
+    for source in (install, readme):
+        assert "export-plugin" in source
+        assert '"$HERMES_HOME/plugins/humanlike-agent-kit"' in source
+        assert "hermes plugins enable humanlike-agent-kit --no-allow-tool-override" in source
+        assert "hermes plugins show humanlike-agent-kit" in source
+        assert "HERMES_PYTHON=" not in source
     assert "<40-character-commit-sha>" in install
-    assert "\nhermes plugins install AlekseiUL/humanlike" not in install
-    assert "hermes plugins doctor . --ci" in install
-    assert "hermes plugins doctor humanlike-agent-kit --ci" not in install
-    assert "humanlike install" not in install
-    assert "humanlike uninstall" not in install
-    assert ".venv\\Scripts\\python.exe" in install
-    assert "native Windows" in install
+    assert "hermes plugins disable humanlike-agent-kit" in install
+    assert "single-use" in install and "forwarded" in install
+    assert "native windows" in install.casefold()
+    assert "Native CLI" in install
+    assert "HERMES_INSTALL.md" in readme and "NATIVE_EVALUATION.md" in readme
 
 
 def test_ci_uses_the_locked_build_toolchain_and_complete_history() -> None:

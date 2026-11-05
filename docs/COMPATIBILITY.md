@@ -1,6 +1,6 @@
 # Compatibility
 
-This document describes the verified code contract for beta `0.2.x`. It is deliberately narrower than what may happen to work in an individual environment.
+This document describes the verified code contract for beta `0.3.x`. It is deliberately narrower than what may happen to work in an individual environment.
 
 ## Runtime baseline
 
@@ -11,7 +11,7 @@ This document describes the verified code contract for beta `0.2.x`. It is delib
 | Model providers | Host-neutral | Core makes no LLM or network call |
 | Languages | RU and EN routing rules | Other locales use the same deterministic API but are not a declared routing-quality target |
 | Packaging | Source tree, editable install, wheel/sdist design | Build tooling is a development extra |
-| Native Windows | Core, CLI, profile loader, memory-off Hermes plugin | Optional SQLite memory ledger is not enabled on Windows in `0.2.x` |
+| Native Windows | Core, CLI, profile loader, memory-off Hermes plugin | Optional SQLite memory ledger is not enabled on Windows in `0.3.x` |
 | Persistent memory | POSIX local filesystem only | Requires `fcntl`, owner/mode semantics, local locking, and atomic replacement |
 
 ## Operating systems
@@ -26,7 +26,7 @@ An intended environment is not automatically a certified platform. Run the full 
 
 Native Windows supports the standard-library core, `humanlike route`, `humanlike eval`, `humanlike doctor`, read-only persona/config/foundation loading, and the wheel-installed Hermes plugin with memory disabled. Windows loaders reject lexical traversal, symlinks, junctions and other reparse points, enforce file bounds, and compare file identity before and after opening.
 
-The optional `SQLiteMemoryLedger` remains unavailable on native Windows in `0.2.x`. It depends on POSIX owner/mode checks, descriptor-relative traversal, `flock`, and directory durability semantics. Enabling `memory_enabled = true` on Windows fails closed instead of silently using weaker storage guarantees.
+The optional `SQLiteMemoryLedger` remains unavailable on native Windows in `0.3.x`. It depends on POSIX owner/mode checks, descriptor-relative traversal, `flock`, and directory durability semantics. Enabling `memory_enabled = true` on Windows fails closed instead of silently using weaker storage guarantees.
 
 WSL2 provides the POSIX interfaces required by the complete stack. Keep memory state on the WSL Linux filesystem rather than a mounted Windows or synchronized directory.
 
@@ -45,38 +45,44 @@ Network filesystems, cloud-synchronized folders, shared volumes, removable drive
 
 ## Hermes host contract
 
-The reference adapter uses a version-neutral boundary around the directory-plugin hook surface. The `0.1.0` reference plugin's manifest, import, and four-hook registration were doctor-smoke-tested with Hermes `v0.21.0`; this is an integration checkpoint, not a promise of compatibility with every `0.21.x` distribution. It registers exactly:
+The original memory-off four-hook checkpoint used Hermes `v0.21.0`.
+The 0.3.0 native bridge was exercised against Hermes 0.22.6, source `f0d94882`,
+in an isolated synthetic home using real `PluginManager`, `PluginContext`,
+`SessionSource` and `invoke_plugin_command` interfaces. This is not a live transport test.
 
-- `pre_llm_call`
-- `transform_llm_output`
-- `post_llm_call`
-- `on_session_finalize`
+The behavior hooks remain `pre_llm_call`, `transform_llm_output`, `post_llm_call`,
+and `on_session_finalize`. A compatible host also gets `/humanlike` and
+`post_gateway_admission`. The manifest schema is `1`, kind is `standalone`;
+the legacy profile schema remains `humanlike-hermes/v1`.
 
-The manifest schema version is `1`, the plugin kind is `standalone`, and the profile schema is `humanlike-hermes/v1`.
+| Surface | Native support |
+|---|---|
+| Telegram human DM, no thread | Consent/controls, admitted proposals, bounded memory/context injection |
+| Native CLI | Session-local slash controls; no automatic context injection |
+| Groups, threads, other transports | Explicit unavailable; memory-off behavior retained |
+| Missing command/admission APIs | Memory-off hooks; compatibility response if commands are available |
+| Native Windows | Memory-off behavior; persistent controls unavailable |
 
-Hermes distributions can change installer commands, payload fields, hook semantics, and transcript behavior independently. Before using another Hermes release:
+Transport source, not text fields, scopes identity. Because command metadata lacks
+forwarded provenance, expanding permissions or changing a memory requires a fresh
+single-use confirmation tied to the exact request, session and policy. Ordinary
+admitted text only proposes writes. `/humanlike status` binds a new conversation;
+there is no archive/session-database lookup to infer a binding after restart.
 
-1. Install the reviewed wheel using [Hermes installation](HERMES_INSTALL.md); do not install the complete source tree as a live directory plugin.
-2. Run `humanlike doctor --config examples/hermes-humanlike/humanlike.toml`.
-3. Confirm all four hooks register.
-4. Exercise first turn, sequential turns, cancelled turns, malformed payloads, output transformation, and session finalization in a non-production profile.
-5. Confirm the host's transcript behavior and no-save expectations.
-6. Run `humanlike eval` (or pass `--cases-dir` for a reviewed custom suite).
-
-Passing `doctor` validates the local profile; it does not prove host-version compatibility.
+For another Hermes distribution, run the [install checks](HERMES_INSTALL.md), the
+real-interface smoke, and a separately authorized live delivery canary. Local
+`doctor` or a successful import alone does not prove delivery compatibility.
 
 ## CLI compatibility
 
 ### Optional 0.2.0 host API
 
 `PersonalMemory`, `ConversationContext`, `AuthorizedHost` and
-`HermesAdapter.prepare_authorized` are additive Python APIs, not new native Hermes
-hooks or TOML options. The executable synthetic example uses the real library
-runtime/adapter, not a running Hermes gateway. Live host authentication and history
-access must be implemented and verified by the integrator. Existing APIs and the
-stock memory-off plugin remain unchanged. The explicit capture grammar uses English
-command words with Unicode values; conversation cues include English and Russian.
-See [migration and rollback](PERSONAL_MEMORY.md).
+`HermesAdapter.prepare_authorized` remain additive developer APIs. Integrators of
+that lower-level path still own authorization/history callbacks. The 0.3.0 native
+bridge supplies these bindings for its documented supported surface; it does not
+change the legacy `memory_enabled` TOML option into owner consent. See the
+[developer guide](PERSONAL_MEMORY.md) and [native setup](HERMES_INSTALL.md).
 
 All commands write one JSON object to standard output.
 
@@ -85,6 +91,7 @@ All commands write one JSON object to standard output.
 | `humanlike route` | `0` | Not applicable | `2` |
 | `humanlike doctor` | `0` | Not applicable | `2` |
 | `humanlike eval` | `0` | `1` | `2` |
+| `humanlike export-plugin` | `0` | Not applicable | `2` |
 
 Error responses use fixed labels and do not echo rejected text or paths. JSON field order is stable, but the beta line does not promise that every field will remain unchanged in later versions.
 

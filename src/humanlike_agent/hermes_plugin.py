@@ -38,9 +38,56 @@ def build_default_runtime() -> HumanlikeRuntime:
 
 
 def register(context: object) -> None:
-    """Register the wheel-installed plugin with a Hermes PluginContext."""
+    """Register behavior hooks plus the supported native human-control bridge."""
+    from .native import NativeController
 
-    HermesAdapter(build_default_runtime()).register(context)
+    adapter = HermesAdapter(build_default_runtime())
+    register_command = getattr(context, "register_command", None)
+    try:
+        from hermes_cli.plugins import VALID_HOOKS
+        from hermes_constants import get_hermes_home
+
+        supported = "post_gateway_admission" in VALID_HOOKS and callable(register_command)
+        root = get_hermes_home()
+    except ImportError:
+        supported = False
+    if not supported:
+        adapter.register(context)
+        if callable(register_command):
+            register_command(
+                "humanlike",
+                lambda raw_args, **kw: (
+                    "[unavailable] Native memory requires Hermes post_gateway_admission "
+                    "and transport-aware slash dispatch. "
+                    "Ordinary memory-off behavior remains available."
+                ),
+                description="Humanlike compatibility status",
+            )
+        return
+    controller = NativeController(lambda: root / "plugin-data" / "humanlike" / "memory.sqlite")
+
+    def pre(**payload):
+        base = adapter.pre_llm_call(**payload)
+        extra = controller.context(**payload)
+        if not base:
+            return None
+        return {"context": base["context"] + ("\n\n" + extra if extra else "")}
+
+    def finalize(**payload):
+        controller.finalize(**payload)
+        adapter.on_session_finalize(**payload)
+
+    context.register_hook("pre_llm_call", pre)
+    context.register_hook("transform_llm_output", adapter.transform_llm_output)
+    context.register_hook("post_llm_call", adapter.post_llm_call)
+    context.register_hook("on_session_finalize", finalize)
+    context.register_hook("post_gateway_admission", controller.admitted)
+    register_command(
+        "humanlike",
+        controller.command,
+        description="Local memory consent, controls and RU/EN help",
+        args_hint="<request>",
+    )
 
 
 __all__ = ["build_default_runtime", "register"]

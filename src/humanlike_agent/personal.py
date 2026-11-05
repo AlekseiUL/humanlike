@@ -51,6 +51,10 @@ _SCHEMA = (
         record_id TEXT PRIMARY KEY REFERENCES memory_records(record_id),
         namespace TEXT NOT NULL, domain TEXT NOT NULL, condition_text TEXT NOT NULL,
         relation TEXT NOT NULL, target_id TEXT, sequence INTEGER NOT NULL)""",
+    """CREATE TABLE IF NOT EXISTS personal_session_modes (
+        namespace TEXT NOT NULL, session_hash TEXT NOT NULL,
+        no_save INTEGER NOT NULL, no_recall INTEGER NOT NULL,
+        PRIMARY KEY(namespace, session_hash))""",
     """CREATE INDEX IF NOT EXISTS personal_scope
         ON personal_records(namespace, domain, condition_text, sequence)""",
 )
@@ -168,7 +172,15 @@ class ExtractionRequest:
 
 
 def explicit_candidate(event: HumanEvent) -> Candidate | None:
-    """Deterministic English command parser; not a natural-language model."""
+    """Explicit legacy grammar plus the closed natural RU/EN preference vocabulary."""
+    from .natural import parse_request
+
+    natural = parse_request(event.text)
+    if natural.action in {"remember", "correct"}:
+        # The host must carry the parsed condition, not silently widen it.
+        if event.domain != natural.domain:
+            return None
+        return Candidate(natural.action, "preference", natural.key, natural.value)
     match = _COMMAND.fullmatch(event.text)
     if match is None:
         return None
@@ -297,6 +309,70 @@ class PersonalMemory:
                 (self._namespace, int(enabled), epoch + 1, watermark),
             )
 
+    def policy(self) -> tuple[bool, int, int]:
+        """Authorized enabled/epoch/watermark metadata, without stored text."""
+        self._require("inspect")
+        return self._current_policy()
+
+    def session_mode(self, session: str) -> tuple[bool, bool]:
+        """Durable native no-save/no-recall flags; returns only policy metadata."""
+        self._require("inspect")
+        session_hash = _digest(_label(session, "session"))
+        db = self._ledger._read_connection()
+        if db is None:
+            return False, False
+        try:
+            if not db.execute(
+                "SELECT 1 FROM sqlite_master WHERE name='personal_session_modes'"
+            ).fetchone():
+                return False, False
+            row = db.execute("SELECT no_save, no_recall FROM personal_session_modes "
+                             "WHERE namespace=? AND session_hash=?",
+                             (self._namespace, session_hash)).fetchone()
+            return (bool(row[0]), bool(row[1])) if row else (False, False)
+        finally:
+            db.close()
+
+    def control(self, action: str, *, session: str, event_id: str, sequence: int,
+                expected_policy: tuple[bool, int, int] | None = None) -> str:
+        """Native control with a durable monotonic replay fence in the same transaction."""
+        if action not in {"consent", "disable", "no_save", "no_recall", "resume"}:
+            raise ValueError("unknown control")
+        self._require("control")
+        if type(sequence) is not int or not 0 < sequence < 2**63:
+            raise ValueError("invalid control sequence")
+        event_hash = _digest(_label(event_id, "event_id"))
+        session_hash = _digest(_label(session, "session"))
+        with self._transaction() as db:
+            enabled, epoch, watermark = self._policy(db)
+            if expected_policy is not None and (enabled, epoch, watermark) != expected_policy:
+                return "revoked"
+            if db.execute("SELECT 1 FROM personal_events WHERE namespace=? AND event_hash=?",
+                          (self._namespace, event_hash)).fetchone():
+                return "replayed"
+            if sequence <= watermark:
+                return "stale"
+            db.execute("INSERT INTO personal_events VALUES (?, ?, ?)",
+                       (self._namespace, event_hash, sequence))
+            if action in {"consent", "disable"}:
+                enabled = action == "consent"
+            else:
+                row = db.execute("SELECT no_save, no_recall FROM personal_session_modes "
+                                 "WHERE namespace=? AND session_hash=?",
+                                 (self._namespace, session_hash)).fetchone()
+                no_save, no_recall = tuple(row) if row else (0, 0)
+                if action == "resume":
+                    no_save, no_recall = 0, 0
+                elif action == "no_save":
+                    no_save = 1
+                else:
+                    no_recall = 1
+                db.execute("INSERT OR REPLACE INTO personal_session_modes VALUES (?, ?, ?, ?)",
+                           (self._namespace, session_hash, no_save, no_recall))
+            db.execute("INSERT OR REPLACE INTO personal_policy VALUES (?, ?, ?, ?)",
+                       (self._namespace, int(enabled), epoch + 1, sequence))
+        return "applied"
+
     def enable(self) -> None:
         """Record host-authorized owner consent. Each call revokes pending work."""
         self._set_consent(True)
@@ -330,6 +406,7 @@ class PersonalMemory:
         event_id: str,
         *,
         no_save: bool = False,
+        expected_epoch: int | None = None,
         extractor: Callable[[ExtractionRequest], Candidate] | None = None,
     ) -> CaptureResult:
         """Capture one explicit atom, optionally round-tripping an untrusted proposer.
@@ -358,6 +435,8 @@ class PersonalMemory:
         # event after forget/disable. No raw text is kept in this reservation.
         with self._transaction() as db:
             enabled, epoch, watermark = self._policy(db)
+            if expected_epoch is not None and epoch != expected_epoch:
+                return CaptureResult("revoked")
             if not enabled:
                 return CaptureResult("disabled")
             if db.execute(
@@ -559,7 +638,10 @@ class PersonalMemory:
             return CaptureResult("invalid")
         return self.capture(event_id)
 
-    def forget(self, record_id: str) -> bool:
+    def forget(
+        self, record_id: str, *, expected_policy: tuple[bool, int, int] | None = None,
+        event_id: str | None = None, sequence: int | None = None,
+    ) -> bool:
         """Erase the entire key/domain/condition lineage and revoke pending captures.
 
         Minimal opaque replay tombstones remain; host archives, providers, backups
@@ -569,6 +651,20 @@ class PersonalMemory:
         record_id = _label(record_id, "record_id")
         with self._transaction() as db:
             enabled, epoch, watermark = self._policy(db)
+            if expected_policy is not None and (enabled, epoch, watermark) != expected_policy:
+                return False
+            if event_id is not None:
+                if type(sequence) is not int or not 0 < sequence < 2**63:
+                    raise ValueError("invalid forget sequence")
+                if sequence <= watermark:
+                    return False
+                event_hash = _digest(_label(event_id, "event_id"))
+                if db.execute("SELECT 1 FROM personal_events WHERE namespace=? AND event_hash=?",
+                              (self._namespace, event_hash)).fetchone():
+                    return False
+                db.execute("INSERT INTO personal_events VALUES (?, ?, ?)",
+                           (self._namespace, event_hash, sequence))
+                watermark = sequence
             db.execute(
                 "INSERT OR REPLACE INTO personal_policy VALUES (?, ?, ?, ?)",
                 (self._namespace, int(enabled), epoch + 1, watermark),
