@@ -30,6 +30,7 @@ CONTROLS = {
         "что ты обо мне помнишь",
         "что ты помнишь",
     ),
+    "inspect_next": ("next memory page", "следующая страница памяти"),
     "why": ("why did you use that", "почему ты это использовал"),
     "forget": ("forget that", "забудь это"),
     "disable": ("pause memory", "disable memory", "pause", "отключи память", "приостанови память"),
@@ -41,12 +42,16 @@ PREFERENCES = {
     ("short", "general"): (
         "usually keep replies short",
         "i usually prefer short replies",
+        "i prefer short replies",
+        "я предпочитаю короткие ответы",
         "обычно отвечай кратко",
         "обычно предпочитаю короткие ответы",
     ),
     ("detailed", "general"): (
         "usually give detailed replies",
         "i usually prefer detailed replies",
+        "i prefer detailed replies",
+        "я предпочитаю подробные ответы",
         "обычно отвечай подробно",
     ),
     ("detailed", "learning"): (
@@ -61,6 +66,11 @@ def parse_request(text: str) -> Request:
     if not isinstance(text, str) or len(text) > 512 or any(c in text for c in "\n\r\x00"):
         return Request()
     normalized = text.strip().casefold().rstrip(".!?").strip()
+    # One optional leading politeness token, not arbitrary filler deletion.
+    for prefix in ("please, ", "please ", "пожалуйста, ", "пожалуйста "):
+        if normalized.startswith(prefix):
+            normalized = normalized[len(prefix) :]
+            break
     for action, phrases in CONTROLS.items():
         if normalized in phrases:
             return Request(action)
@@ -71,6 +81,7 @@ def parse_request(text: str) -> Request:
         if normalized in phrases:
             return Request("forget", domain=domain, value="scoped")
     action = "remember"
+    explicit = False
     for prefix, verb in (
         ("correct that: ", "correct"),
         ("исправь это: ", "correct"),
@@ -81,8 +92,9 @@ def parse_request(text: str) -> Request:
     ):
         if normalized.startswith(prefix):
             normalized, action = normalized[len(prefix) :], verb
+            explicit = True
             break
     for (value, domain), phrases in PREFERENCES.items():
         if normalized in phrases:
             return Request(action, value=value, domain=domain)
-    return Request()
+    return Request("clarify" if explicit else "none")

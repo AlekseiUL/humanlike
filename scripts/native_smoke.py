@@ -14,6 +14,14 @@ def main():
     parser.add_argument("--home", type=Path, required=True)
     parser.add_argument("--plugin-dir", type=Path)
     args = parser.parse_args()
+    # This smoke exercises dispatch, not transport or providers.
+    import sys
+
+    def offline(event, values):
+        if event in {"socket.connect", "socket.getaddrinfo"}:
+            raise RuntimeError("network forbidden in native smoke")
+
+    sys.addaudithook(offline)
     args.home.mkdir(mode=0o700, parents=False, exist_ok=False)
     os.environ["HERMES_HOME"] = str(args.home)
     os.environ["HOME"] = str(args.home)
@@ -93,7 +101,11 @@ def main():
             platform="telegram",
             sender_id="fixture-human",
             conversation_history=[
-                {"role": "assistant", "content": "Version 1: Hello.\nVersion 2: Welcome."}
+                {
+                    "role": "assistant",
+                    "content": "Version 1: Hello.\nFirst body\n"
+                    "Version 2: Welcome.\nSecond body\nRequired condition",
+                }
             ],
             **extra,
         )
@@ -101,18 +113,43 @@ def main():
     initial = command("status")
     assert "[disabled]" in initial, initial
     assert "[enabled]" in approved("I agree to local memory")
-    assert "[pending]" in str(admitted("Запомни: обычно отвечай кратко"))
+    assert "[pending]" in str(admitted("Пожалуйста, запомни: я предпочитаю короткие ответы"))
     assert "[empty]" in command("What do you remember?")
     assert "[stored]" in approved("Confirm")
     admitted("the second version")
     enriched = pre("the second version")
     assert "Welcome." in str(enriched) and "general_default" in str(enriched)
+    assert "Second body" in str(enriched) and "Required condition" in str(enriched)
     assert "[used]" in command("Why did you use that?")
     assert "HUMANLIKE_REFERENCE_DATA" not in str(pre("continue"))  # no admitted ticket
     admitted("continue")
     assert "HUMANLIKE_REFERENCE_DATA" not in str(pre("continue", parent_session_id="job"))
+    for _ in range(50):
+        assert "[stored]" in approved("Please remember: I prefer short replies")
+    seen = []
+    response = command("What do you remember?")
+    while True:
+        assert response.startswith("[stored_records]"), response
+        page = json.loads(response[response.index("{") :])
+        assert len(page["records"]) <= 5
+        seen.extend(page["records"])
+        if not page["has_more"]:
+            break
+        response = command("Следующая страница памяти")
+    assert len(seen) == len({r["source"] for r in seen}) == 51
+    assert "[no_recall]" in command("Do not recall this session")
+    admitted("continue")
+    assert "HUMANLIKE_REFERENCE_DATA" not in str(pre("continue"))
+    assert "[resume]" in approved("Resume this session")
+    assert "[stored]" in approved("Explain learning topics in detail")
+    assert "[clarify]" in approved("Forget that")
     assert "[stored]" in approved("Correct that: usually give detailed replies")
-    assert "[forgotten]" in approved("Forget that")
+    first = command("What do you remember?")
+    assert not any(r["active"] for r in json.loads(first[first.index("{") :])["records"])
+    assert "[forgotten]" in approved("Forget general reply length")
+    remaining = command("What do you remember?")
+    assert "learning" in remaining and '"general"' not in remaining
+    assert "[forgotten]" in approved("Forget learning reply length")
     assert "[empty]" in command("What do you remember?")
     assert "[unavailable]" in command("I agree to local memory", source.to_dict())
     foreign = SessionSource(
@@ -142,7 +179,8 @@ def main():
                     "invoke_plugin_command",
                     "SessionSource",
                 ],
-                "journey": "consent-propose-confirm-recall-correct-forget",
+                "journey": "consent-propose-confirm-recall-page-51-correct-scoped-forget-restart",
+                "live_telegram": "NOT_RUN",
                 "private_data": "not_read",
                 "network": "not_used",
             }
