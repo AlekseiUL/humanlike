@@ -12,7 +12,7 @@ include uv.lock
 recursive-include .github *.yml
 recursive-include docs *.md
 recursive-include docs/assets *.jpg
-recursive-include evals *.jsonl
+recursive-include evals *.jsonl *.json
 recursive-include examples *.md *.toml *.py
 recursive-include packs *.json
 recursive-include scripts *.py

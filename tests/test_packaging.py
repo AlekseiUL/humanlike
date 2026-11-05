@@ -178,9 +178,7 @@ print(json.dumps({"hooks": list(host.hooks), "value": entry_point.value}))
             cwd=profile,
         )
     )
-    evaluation = _payload(
-        _run([str(python), "-m", "humanlike_agent", "eval"], cwd=profile)
-    )
+    evaluation = _payload(_run([str(python), "-m", "humanlike_agent", "eval"], cwd=profile))
     doctor = _payload(
         _run(
             [str(python), "-m", "humanlike_agent", "doctor", "--config", str(config)],
@@ -188,6 +186,26 @@ print(json.dumps({"hooks": list(host.hooks), "value": entry_point.value}))
         )
     )
 
+    exported = _payload(
+        _run(
+            [
+                str(python),
+                "-m",
+                "humanlike_agent",
+                "export-plugin",
+                "--output",
+                str(tmp_path / "native-plugin"),
+            ],
+            cwd=profile,
+        )
+    )
+    assert exported == {
+        "command": "export-plugin",
+        "ok": True,
+        "installed": False,
+        "enabled": False,
+    }
+    assert (tmp_path / "native-plugin" / "humanlike_agent" / "native.py").is_file()
     assert route["ok"] is True
     assert evaluation["summary"] == {"failed": 0, "passed": 40, "total": 40}
     assert doctor == {

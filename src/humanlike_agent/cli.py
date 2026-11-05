@@ -37,6 +37,8 @@ def _parser() -> argparse.ArgumentParser:
 
     evaluate = commands.add_parser("eval", help="run an offline conformance suite")
     evaluate.add_argument("--cases-dir")
+    export = commands.add_parser("export-plugin", help="export a new native plugin directory")
+    export.add_argument("--output", required=True)
     return parser
 
 
@@ -129,6 +131,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         status, payload = _run_doctor(arguments)
     elif arguments.command == "eval":
         status, payload = _run_eval(arguments)
+    elif arguments.command == "export-plugin":
+        from .export import export_plugin
+        try:
+            export_plugin(Path(arguments.output))
+            status, payload = 0, {"command": "export-plugin", "ok": True,
+                                  "installed": False, "enabled": False}
+        except Exception:
+            status, payload = 2, {"command": "export-plugin", "ok": False,
+                                  "error": "export_failed", "installed": False}
     else:
         status = 2
         payload = {"command": "cli", "error": "invalid_arguments", "ok": False}

@@ -6,6 +6,53 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-05
+
+### Added — English
+
+- Callback-free native Hermes bridge: `/humanlike`, transport-scoped identity,
+  admitted-message proposals, explicit consent and fresh single-use confirmations.
+- Closed RU/EN reply-length vocabulary; inspect/source/why-use/correct/forget/pause
+  controls, durable session no-save/no-recall and replay/out-of-order fences.
+- Bounded recent-history continuation, numbered alternatives, last correction and
+  topic references; current requests outrank memory, no archive crawling.
+- `humanlike export-plugin --output` exports only runtime files into a new directory,
+  avoiding modifications to Hermes' managed Python environment.
+- Real native-interface synthetic smoke, normal-install/export checks and a 12-case
+  blinded model comparison. Both conditions scored 120/120: no quality gain claimed.
+
+### Boundaries — English
+
+- Automatic context path: Telegram human DM without a thread; native CLI has
+  session-local controls only. New sessions need `/humanlike status` binding.
+- Memory remains off until consent, POSIX-only and unencrypted. Only documented
+  reply-length phrases are extracted; no extra model/provider or cloud service.
+- Static slash text cannot authorize a write: forwarded provenance is unavailable,
+  so changes require a five-minute, single-use challenge. Forget does not erase
+  transcripts/backups/provider copies. No live gateway activation was performed.
+
+### Добавлено — Русский
+
+- Подключение к Hermes без Python-callbacks: `/humanlike`, привязка к владельцу/чату,
+  предложения из обычных сообщений, согласие и одноразовое подтверждение изменений.
+- Ограниченный RU/EN-словарь предпочтений длины ответа; просмотр источников,
+  объяснение использования, исправление, забывание, пауза и no-save/no-recall.
+- Продолжение по недавней истории, второй вариант, последняя поправка и тема без
+  технических привязок. Новый запрос важнее памяти; архивы не сканируются.
+- Экспорт только рабочих файлов через `humanlike export-plugin --output` в новый
+  каталог, без изменения Python-среды Hermes.
+- Native smoke, проверка обычной установки и слепое сравнение на 12 диалогах:
+  по 120/120 у обоих вариантов, улучшение качества не доказано.
+
+### Ограничения — Русский
+
+- Автоматический контекст — в личном Telegram-чате без темы; CLI даёт только
+  команды. Новая сессия привязывается через `/humanlike статус`.
+- Память выключена до согласия, POSIX-only и без шифрования. Извлекаются только
+  описанные предпочтения длины ответа; скрытой модели или облачного сервиса нет.
+- Статическая slash-команда не разрешает запись: нужно одноразовое подтверждение.
+  Забывание не стирает переписку, копии провайдера или бэкапы. Живой gateway не включался.
+
 ## [0.2.0] - 2026-11-05
 
 ### Added — English

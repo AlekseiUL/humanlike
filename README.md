@@ -6,7 +6,7 @@
 
 [English](#english) · [Русский](#русский) · [Documentation](#documentation) · [License](#license)
 
-> **Status: public beta (`0.2.0`), licensed under MIT.** The API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
+> **Status: public beta (`0.3.0`), licensed under MIT.** The API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
 
 ```mermaid
 flowchart LR
@@ -21,18 +21,16 @@ flowchart LR
 
 Humanlike is a behavioral planning layer for AI agents. It classifies each turn, selects a social and cognitive mode, assembles bounded guidance, and returns privacy-aware metadata. The host remains responsible for model calls, tools, transport, output delivery, transcript retention, and policy enforcement.
 
-### What's new in 0.2.0
+### What's new in 0.3.0
 
-- **Consented personal memory.** Save explicitly stated preferences, goals and interests in the existing SQLite ledger, with source evidence and retrieval on later turns. Capture is off by default and requires the owner's consent and host-side authorization.
-- **Changes without losing meaning.** Separate confirmation, a changed preference, correction of an incorrect record, and an unresolved contradiction. Domain and condition keep context-specific preferences separate; stale or repeated events cannot silently replace newer knowledge.
-- **Owner controls and safe forgetting.** Inspect, correct, forget a fact's version history, or disable memory. No-save is checked before extraction and before persistence. Revocation and replay guards reject late results after forgetting or disabling, including after the ledger is reopened.
-- **Bounded conversation continuity.** Recover references to an earlier artifact and actual past tool outcomes from host-authorized history for continuation requests. Unrelated requests, quoted cues and weak matches do not reactivate an old task; the canonical conversation is not rewritten.
-- **Explicit host integration.** `PersonalMemory`, `AuthorizedHost` and `HermesAdapter.prepare_authorized(...)` provide the new integration path. Updating the stock plugin or enabling the legacy ledger does not activate personal capture. No mandatory cloud service, model or third-party runtime dependency is added.
-- **Runnable examples and regression coverage.** A synthetic end-to-end example exercises persistence, reopening, correction, forgetting, no-save and context recall. Added tests cover authorization, replay, concurrent revocation, migration compatibility and installed-package behavior. The integration guide is available in English and Russian.
+- **Native Hermes setup:** export a runtime-only plugin, enable it, and use `/humanlike` without writing callbacks. Memory is OFF until explicit, single-use confirmation.
+- **Small RU/EN memory vocabulary:** save reply-length preferences, inspect sources, correct or forget an unambiguous target, pause, and distinguish no-save from no-recall. Ordinary text proposes; it never authorizes a save.
+- **Recent conversation references:** “continue”, “the second version”, “use my last correction” and topic references use bounded authorized history, including actual tool outcomes. No technical anchor names or archive crawling.
+- **Real behavioral comparison:** 12 synthetic dialogues, 24 answers and 12 blinded judgments on the same model. Both configurations scored 120/120; **no quality improvement demonstrated**. Enhanced context averaged 1,440 extra characters. See [method and limits](docs/NATIVE_EVALUATION.md).
 
-**Limits remain explicit:** capture currently uses English command words with Unicode values, not free-form extraction from ordinary conversation. Durable memory remains POSIX-only and unencrypted; forgetting does not erase host/provider transcripts or backups. Model answer-quality A/B is **NOT_RUN**: these functional additions are not evidence of more natural LLM answers.
+**Boundaries:** Telegram human DMs support the automatic memory/context path; native CLI offers slash controls only. Explicitly bind each new session with `/humanlike status`. Persistent memory remains POSIX-only, local and unencrypted. Only the documented reply-length vocabulary is extracted; this is not arbitrary personal-fact inference.
 
-Start with the [EN/RU integration guide](docs/PERSONAL_MEMORY.md), the [runnable synthetic example](examples/consented_memory.py), and the [bilingual 0.2.0 changelog](CHANGELOG.md#020---2026-11-05).
+Start with [EN/RU setup and controls](docs/HERMES_INSTALL.md). The older [developer API](docs/PERSONAL_MEMORY.md) remains available.
 
 ### What it provides
 
@@ -43,7 +41,7 @@ Start with the [EN/RU integration guide](docs/PERSONAL_MEMORY.md), the [runnable
 - Opt-in explicit personal-memory capture, correction/forget/revocation controls, and bounded conversation references through an authenticated host API.
 - A 40-case offline conformance suite for routing, privacy, context budgets, policy, disclosure, stance, memory, and drift.
 - A reference Hermes directory plugin with `pre_llm_call`, `transform_llm_output`, `post_llm_call`, and `on_session_finalize` hooks.
-- Stable JSON CLI commands: `route`, `doctor`, and `eval`.
+- Stable JSON CLI commands: `route`, `doctor`, `eval`, and `export-plugin`.
 
 ### What it is not
 
@@ -51,7 +49,7 @@ Humanlike is not a model, chatbot UI, autonomous agent host, network service, or
 
 ### Quickstart
 
-Requirements: Git and Python 3.11 or newer. Linux and macOS support the complete stack. Native Windows supports the core runtime, CLI, hardened read-only profile loading, read-only conversation references, and the memory-off Hermes plugin. The optional SQLite memory ledger remains POSIX-only in `0.2.x`.
+Requirements: Git and Python 3.11 or newer. Linux and macOS support the complete stack. Native Windows supports the core runtime, CLI, hardened read-only profile loading, read-only conversation references, and the memory-off Hermes plugin. The optional SQLite memory ledger remains POSIX-only in `0.3.x`.
 
 Linux and macOS:
 
@@ -124,27 +122,27 @@ The host calls its model and reports bounded outcome metadata through `runtime.o
 
 ### Hermes integration
 
-Install the package into Hermes' own Python environment, validate it, and then enable its official plugin entry point. Pin a reviewed commit in production:
+After the package quickstart above, export only the runtime into the selected Hermes home:
 
 ```bash
-HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
-uv pip install --python "$HERMES_PYTHON" \
-  "git+https://github.com/AlekseiUL/humanlike.git@<40-character-commit-sha>"
+export HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
+mkdir -p "$HERMES_HOME/plugins"
+humanlike export-plugin --output "$HERMES_HOME/plugins/humanlike-agent-kit"
+hermes plugins doctor "$HERMES_HOME/plugins/humanlike-agent-kit" --ci
 hermes plugins enable humanlike-agent-kit --no-allow-tool-override
 hermes plugins show humanlike-agent-kit
 ```
 
-Start a new Hermes session after enabling it. The full source tree contains adversarial safety fixtures, so direct directory-plugin installation is intentionally not used. See [Hermes installation](docs/HERMES_INSTALL.md) for details, health checks, rollback, and removal. Compatibility is documented in [Compatibility](docs/COMPATIBILITY.md).
+For a named profile, select its home first. Existing directories are not overwritten.
+Start a new Hermes process; do not restart an active gateway without approval.
+In a Telegram DM, start an ordinary conversation, then `/humanlike enable memory`
+and `/humanlike I agree to local memory`; send the fresh confirmation command
+shown in the reply. Only `[enabled]` means consent succeeded. Say “Usually keep
+replies short”, confirm the proposal, then ask “What do you remember?”.
 
-Memory is disabled by default. Enabling it requires `memory_enabled = true`, `acknowledge_host_context_persistence = true`, and a relative `state_path`. The runtime cannot delete copies already retained by a host or model provider.
-
-Those TOML settings configure the legacy ledger, **not automatic personal capture**.
-For the new consented pipeline, bind `PersonalMemory` and `AuthorizedHost` in trusted
-host code and explicitly call `enable()`. See the [EN/RU integration guide](docs/PERSONAL_MEMORY.md)
-and run `python examples/consented_memory.py` after installation. It demonstrates
-real persistence/reopen/correction/forget and artifact/tool-reference recall using
-only synthetic data. The capture grammar is explicit, not free-form psychological
-inference. Model answer-quality A/B is **NOT_RUN**; no naturalness improvement is claimed.
+See [setup, supported commands and rollback](docs/HERMES_INSTALL.md). No live
+installation is implied by the compatibility tests. No extra provider or credentials
+are needed. Legacy TOML memory settings and developer APIs remain separate.
 
 ### Development
 
@@ -163,18 +161,16 @@ The installed runtime has no third-party Python dependencies. Development, build
 
 Humanlike — публичная бета-библиотека под лицензией MIT. Это детерминированный поведенческий слой для ИИ-агентов: он определяет тип запроса и способ ответа, собирает ограниченный контекст и возвращает метаданные с учётом приватности. Вызов модели, инструменты, доставка ответа, хранение переписки и соблюдение политик остаются на стороне основной системы.
 
-### Что нового в 0.2.0
+### Что нового в 0.3.0
 
-- **Персональная память по согласию.** Явно указанные предпочтения, цели и интересы сохраняются в существующем SQLite-хранилище со ссылками на источники и могут использоваться в следующих репликах. Запись по умолчанию выключена: нужны согласие владельца и проверка прав на стороне основной системы.
-- **Различение смысла изменений.** Подтверждение, новое предпочтение, исправление ошибочной записи и неразрешённое противоречие обрабатываются отдельно. Предметная область и условие разделяют контекстные предпочтения; устаревшее или повторное событие не может незаметно заменить более свежие сведения.
-- **Управление памятью и безопасное забывание.** Можно просмотреть записи, исправить их, забыть всю историю выбранного факта или отключить память. Запрет сохранения проверяется до извлечения и перед записью. Отзыв разрешения и защита от повторов отклоняют запоздавшие результаты после забывания или отключения — в том числе после повторного открытия хранилища.
-- **Контекст продолжения разговора.** По запросу на продолжение библиотека возвращает ограниченные ссылки на прежний материал и реальные результаты инструментов из истории, доступ к которой разрешила основная система. Несвязанные запросы, цитаты и слабые совпадения не возобновляют старую задачу; исходная переписка не переписывается.
-- **Явное подключение к основной системе.** Новый путь интеграции использует `PersonalMemory`, `AuthorizedHost` и `HermesAdapter.prepare_authorized(...)`. Обновление обычного плагина или включение прежнего хранилища не запускает персональный захват. Обязательные облачные сервисы, модели и сторонние runtime-зависимости не добавлены.
-- **Исполняемый пример и проверки регрессий.** Сквозной пример на вымышленных данных проверяет сохранение, повторное открытие, исправление, забывание, запрет записи и восстановление контекста. Новые тесты покрывают права доступа, повторы, отзыв разрешения во время обработки, совместимость хранилища и работу установленного пакета. Инструкция по интеграции доступна на английском и русском.
+- **Готовое подключение к Hermes:** экспорт рабочих файлов, штатное включение и `/humanlike` без Python-callbacks. Память выключена до явного одноразового подтверждения.
+- **Небольшой RU/EN-словарь:** предпочтения длины ответа, просмотр источников, исправление, забывание, пауза и отдельные no-save/no-recall. Обычная фраза предлагает запись, но не разрешает её.
+- **Продолжение разговора:** «продолжи», «второй вариант», «используй мою последнюю поправку» и ссылка на тему используют ограниченную недавнюю историю и реальные результаты инструментов. Технические имена привязок не нужны, архивы не сканируются.
+- **Реальное сравнение ответов:** 12 синтетических диалогов, 24 ответа и 12 слепых оценок одной моделью. Обе конфигурации получили 120/120; **улучшение качества не доказано**. Дополнительный контекст — в среднем 1 440 символов. [Метод и ограничения](docs/NATIVE_EVALUATION.md).
 
-**Ограничения указаны прямо:** запись пока использует английские командные слова со значениями Unicode, а не свободное извлечение фактов из обычной беседы. Постоянная память остаётся POSIX-only и не шифруется; забывание не удаляет переписку и резервные копии основной системы или провайдера. Слепое сравнение качества ответов модели — **NOT_RUN**: новые функции сами по себе не доказывают, что LLM стала общаться естественнее.
+**Границы:** автоматическая память и контекст работают в личном Telegram-чате; native CLI предоставляет только команды. Новую сессию нужно привязать через `/humanlike статус`. Постоянная память локальная, POSIX-only, без шифрования. Извлекаются только описанные предпочтения длины ответа, а не любые личные факты.
 
-Начните с [инструкции EN/RU](docs/PERSONAL_MEMORY.md), [исполняемого примера на вымышленных данных](examples/consented_memory.py) и [двуязычной истории изменений 0.2.0](CHANGELOG.md#020---2026-11-05).
+Начните с [установки и управления EN/RU](docs/HERMES_INSTALL.md). Прежний [API для разработчиков](docs/PERSONAL_MEMORY.md) сохранён.
 
 ### Что умеет
 
@@ -184,7 +180,7 @@ Humanlike — публичная бета-библиотека под лицен
 - Поддерживает опциональную SQLite-память только с явным согласием основной системы.
 - Даёт управляемый захват явно указанных предпочтений, исправление, забывание и ограниченное восстановление контекста через проверенный host API.
 - Запускает офлайн-проверку из 40 кейсов.
-- Даёт эталонный адаптер для Hermes и JSON CLI-команды `route`, `doctor`, `eval`.
+- Даёт эталонный адаптер для Hermes и JSON CLI-команды `route`, `doctor`, `eval`, `export-plugin`.
 
 ### Чего не делает
 
@@ -192,7 +188,7 @@ Humanlike — публичная бета-библиотека под лицен
 
 ### Быстрый старт
 
-Нужны Git и Python 3.11 или новее. Linux и macOS поддерживают полный стек. В нативном Windows работают основной runtime, CLI, защищённая загрузка профиля, чтение переданного контекста и Hermes-плагин с выключенной памятью. Опциональная SQLite-память в ветке `0.2.x` остаётся POSIX-only.
+Нужны Git и Python 3.11 или новее. Linux и macOS поддерживают полный стек. В нативном Windows работают основной runtime, CLI, защищённая загрузка профиля, чтение переданного контекста и Hermes-плагин с выключенной памятью. Опциональная SQLite-память в ветке `0.3.x` остаётся POSIX-only.
 
 Linux и macOS:
 
@@ -241,33 +237,26 @@ humanlike doctor --config examples/hermes-humanlike/humanlike.toml
 
 ### Интеграция и память
 
-Установите пакет в рабочую Python-среду Hermes, проверьте его и затем включите официальную точку подключения. Для рабочего использования закрепите проверенный коммит:
+После установки пакета выполните блок **Hermes integration** выше, выбрав home
+нужного профиля. Экспорт не перезаписывает старую установку и не меняет Python-среду
+Hermes. Запустите новый процесс; живой gateway без согласования не перезапускайте.
 
-```bash
-HERMES_PYTHON="$(dirname "$(command -v hermes)")/python"
-uv pip install --python "$HERMES_PYTHON" \
-  "git+https://github.com/AlekseiUL/humanlike.git@<40-character-commit-sha>"
-hermes plugins enable humanlike-agent-kit --no-allow-tool-override
-hermes plugins show humanlike-agent-kit
-```
+В личном Telegram-чате отправьте обычное сообщение, затем `/humanlike включи память`
+и `/humanlike согласен на локальную память`. Проверьте запрос и отправьте показанную
+одноразовую команду. Только `[enabled]` означает успешное согласие. Далее:
+«Обычно отвечай кратко» → подтверждение предложения → «Что ты помнишь?».
 
-После включения начните новую сессию Hermes. В исходниках есть провокационные данные для тестов безопасности, поэтому прямая установка всего репозитория как directory-плагина намеренно не используется. Проверка, откат и удаление описаны в [инструкции по установке](docs/HERMES_INSTALL.md).
-
-Память по умолчанию выключена. Для включения нужны `memory_enabled = true`, `acknowledge_host_context_persistence = true` и относительный `state_path`. Это осознанное ограничение: библиотека не управляет копиями данных в основной системе или у провайдера модели.
-
-Эти TOML-настройки включают прежнее хранилище, **не автоматический захват личных фактов**.
-Новый цикл требует `PersonalMemory`, проверенного `AuthorizedHost` и явного `enable()`.
-[Инструкция EN/RU](docs/PERSONAL_MEMORY.md) описывает права, команды и ограничения;
-`python examples/consented_memory.py` проверяет сохранение, повторное открытие,
-исправление, забывание и контекст на синтетических данных. Свободное извлечение
-личности из речи не заявляется. Слепое модельное A/B — **NOT_RUN**; улучшение
-естественности ответов не доказано.
+[Полная инструкция EN/RU](docs/HERMES_INSTALL.md) содержит точные фразы, ограничения,
+проверку и откат. Дополнительная модель и ключи не нужны. Проверка совместимости
+не означает установку в чью-либо живую систему; прежние TOML-настройки и API
+разработчика остаются отдельным способом интеграции.
 
 ## Documentation
 
 - [Architecture / Архитектура](docs/ARCHITECTURE.md)
 - [Privacy / Приватность](docs/PRIVACY.md)
 - [Consented memory and conversation context / Память и контекст](docs/PERSONAL_MEMORY.md)
+- [Native quality evaluation / Проверка качества](docs/NATIVE_EVALUATION.md)
 - [Compatibility / Совместимость](docs/COMPATIBILITY.md)
 - [Hermes installation / Установка в Hermes](docs/HERMES_INSTALL.md)
 - [Threat model / Модель угроз](docs/THREAT_MODEL.md)

@@ -1,4 +1,10 @@
-# Consented memory and conversation references (0.2.0)
+# Consented memory and conversation references — developer API
+
+This is the lower-level API introduced in 0.2.0. For callback-free 0.3.0 setup,
+use [Native Hermes installation and controls](HERMES_INSTALL.md). The old API
+remains available; its English grammar is supplemented by the closed RU/EN
+reply-length vocabulary. / Для готового подключения 0.3.0 используйте
+[инструкцию EN/RU](HERMES_INSTALL.md); ниже описан прежний API разработчика.
 
 [English](#english) · [Русский](#русский)
 
@@ -13,7 +19,7 @@ source evidence, and available on later turns. `ConversationContext` separately
 retrieves bounded references from history explicitly supplied by the host.
 
 Defaults are unchanged: the installed Hermes plugin does not start capturing
-personal information. This is a programmatic host integration, not a new stock
+personal information. This section describes the programmatic host integration, not the 0.3.0 native
 Hermes hook, slash command, TOML flag, or automatic archive reader. The existing
 `memory_enabled` option provisions the legacy ledger; it is **not owner consent**
 for this pipeline. No cloud memory service, model, credential or network dependency

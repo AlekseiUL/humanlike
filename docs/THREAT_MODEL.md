@@ -1,6 +1,6 @@
 # Threat Model
 
-This threat model covers Humanlike beta `0.2.x`: the provider-neutral core, local profiles and creative packs, optional SQLite memory, offline conformance runner, and reference Hermes adapter.
+This threat model covers Humanlike beta `0.3.x`: the provider-neutral core, local profiles and creative packs, optional SQLite memory, offline conformance runner, and reference Hermes adapter.
 
 ## Security goals
 
@@ -25,6 +25,31 @@ contract. Never restore pre-forget state to perform a rollback.
 5. Reject path traversal, unsafe links, unsafe file ownership/modes, and malformed local data at hardened boundaries.
 6. Fail neutral at the Hermes hook boundary without leaking rejected payloads or exception details.
 7. Run core behavior and conformance checks without model or network access.
+
+## Native 0.3.0 memory boundary
+
+The [native bridge](HERMES_INSTALL.md) keeps bounded volatile proposals, one-time
+confirmation challenges, admission fingerprints and last-use receipts. Pending
+requests expire after five minutes or process/session finalization. Persistent
+state is one profile-local ledger, partitioned by hashed transport owner/chat.
+Hashing scopes is not anonymization. No state is seeded from the host.
+
+Native no-save prevents new preference captures; recording a privacy-tightening
+control may itself write an opaque replay fence/session flag. No-recall separately
+blocks injection and does not block owner inspection. Native session flags survive
+restart until an explicit confirmed resume; this differs from core-only in-memory
+no-save. No control can retract context already sent to Hermes or a provider.
+
+All expanding controls and memory changes require a fresh single-use challenge
+because native command metadata lacks forwarded provenance. The token binds the
+exact request, session and policy and is not accepted from a model hook. Ordinary
+admitted messages can propose a write or tighten privacy, never grant consent.
+The host, its admission/auth checks and its real command dispatcher remain trusted;
+a compromised host or OS account can bypass this boundary.
+
+Forget removes the selected lineage and its evidence text; opaque event hashes
+and sequence/policy fences remain to prevent resurrection. The limited native
+inspection view refuses to choose targets beyond its bound; use the paged API.
 
 ## Assets
 
@@ -63,7 +88,7 @@ The operating-system account, Python interpreter, installed plugin source, and h
 | Oversized or malformed turn/payload | Type checks, character limits, identifier bounds, active session/turn limits, fail-neutral hooks | Host can consume resources before the hook is invoked |
 | Prompt injection through user text | Deterministic routing; user text is not copied verbatim into normal context fragments; hard truth/privacy tails | A downstream model may still follow malicious user instructions |
 | Malicious recalled memory or creative data | Explicit untrusted delimiters, bounded records, validated pack manifests and rights fields | Delimiters are guidance, not a model-enforced security boundary |
-| Raw transcript retention | Metadata-only receipts/snapshots/outcomes; no automatic Hermes memory derivation | Host, provider, logs, and backups may retain text and injected context |
+| Raw transcript retention | Metadata-only receipts/snapshots/outcomes; no automatic unconfirmed memory commits | Host, provider, logs, and backups may retain text and injected context |
 | No-save bypass | Strictest scope wins, session propagation, hard policy fragment, write preconditions | External host storage is outside runtime control |
 | Cross-profile or cross-session memory access | Profile/session checks on recall and write; rooted state path | A compromised host can instantiate the runtime with another trusted profile |
 | Path traversal or symlink escape | Relative rooted paths, component checks, no-follow opens, symlink rejection | Trusted process owner can replace the installation itself |
@@ -78,13 +103,14 @@ The operating-system account, Python interpreter, installed plugin source, and h
 
 ## Abuse cases
 
-### A user requests no-save and then requests saving
+### A core-runtime user requests no-save and then requests saving
 
 Session-level no-save remains the strictest scope until `finalize()`. A later save phrase cannot silently relax it. The host must start a new finalized session for a new consent decision.
 
 ### A host passes message text as a memory record
 
-The core validates record shape and write conditions, but it cannot determine whether a scalar value is an over-broad transcript excerpt. The host is trusted to apply data minimization before supplying records. The reference Hermes adapter avoids this risk by supplying no records.
+The core validates record shape and write conditions, but it cannot determine whether a scalar value is an over-broad transcript excerpt. The host is trusted to apply data minimization before supplying records. The core behavior adapter supplies no records. The native 0.3.0 control bridge
+accepts only its closed reply-length vocabulary after human confirmation.
 
 ### A profile points outside its directory
 

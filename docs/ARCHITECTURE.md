@@ -60,6 +60,10 @@ Contracts are frozen dataclasses and serialize to JSON-safe dictionaries through
 | `memory.py` | Typed evidence-aware records, recall, supersession, and deletion | Optional local SQLite image |
 | `personal.py` | Explicit capture, consent/revocation, scoped relations and owner controls | Additive policy/event/metadata tables in the same ledger |
 | `conversation.py` | Bounded exact-anchor references from host-authorized history | None |
+| `natural.py` | Closed RU/EN proposal parser, no authorization or model calls | None |
+| `native.py` | Transport-scoped consent/control bridge, confirmation challenges and context tickets | Same SQLite ledger; bounded volatile bindings/proposals |
+| `continuity.py` | Bounded recent-history references without user-supplied anchors | None |
+| `export.py` | New-directory runtime-only package export, never install/enable | Caller-selected new directory |
 | `host.py` | Authenticated host bindings and bounded reference context | None |
 | `runtime.py` | Orchestration, budgets, isolation, receipts, and lifecycle | Bounded in-memory metadata; optional memory port |
 | `evals.py` | Strict offline fixture loading and conformance reporting | Temporary per-run state |

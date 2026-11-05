@@ -540,7 +540,8 @@ print(json.dumps({"hooks": list(host.hooks), "package": callback_module.__file__
     assert Path(loaded["package"]).is_relative_to(copied / "src")
 
     manifest = (copied / "plugin.yaml").read_text(encoding="utf-8")
-    assert manifest.count("  - ") == 4
+    assert manifest.count("  - ") == 5
+    assert "  - post_gateway_admission" in manifest
     assert "kind: standalone" in manifest
     assert "provides_hooks:" in manifest
     assert all(f"  - {hook}" in manifest for hook in loaded["hooks"])

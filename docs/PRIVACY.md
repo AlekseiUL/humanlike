@@ -31,7 +31,7 @@ Runtime `no-save`, expiry, deletion, and finalization cannot erase those host-ow
 
 Fingerprints reduce direct exposure but are not anonymization. The default key is generated per runtime instance, so fingerprints are not intended as stable cross-process user identifiers.
 
-## No-save behavior
+## Core no-save behavior
 
 The router recognizes explicit item-level and session-level no-save requests. The strictest scope wins.
 
@@ -50,7 +50,7 @@ Durable memory is optional and disabled in the example Hermes profile. When enab
 
 Each record contains a typed kind, key, scalar value, confidence, timestamps, validity, evidence reference, optional tags, and optional supersession references. The schema intentionally has no raw-transcript column. A host could still put sensitive or transcript-like text into a record value, so the host must validate and minimize records before submission.
 
-The stock Hermes hooks never derive records from message text. Enabling a state path alone therefore does not create conversational memory. The optional [consented host API](PERSONAL_MEMORY.md) captures only explicit authorized atoms; it retains scoped relation metadata, event-ID hashes and durable revocation fences in the same ledger. Its no-save policy blocks capture, while explicitly authorized read-only conversation references remain available.
+The core behavior hooks do not derive records from message text. Enabling a state path alone therefore does not create conversational memory. The optional [consented host API](PERSONAL_MEMORY.md) captures only explicit authorized atoms; it retains scoped relation metadata, event-ID hashes and durable revocation fences in the same ledger. Its no-save policy blocks capture, while explicitly authorized read-only conversation references remain available.
 
 ### Storage properties
 
@@ -69,6 +69,31 @@ Use operating-system or volume encryption when memory confidentiality at rest is
 `pre_llm_call` returns context that Hermes may copy into its transcript. That context can contain persona guidance and recalled memory atoms. The profile therefore requires explicit acknowledgement before a memory state path can be enabled.
 
 `post_llm_call` reads assistant text only to validate payload shape and measure response length; the adapter does not pass the text into `TurnOutcome` or runtime state. The adapter reports a conservative unknown host status rather than treating delivery as proof that persistence was safe.
+
+## Native 0.3.0 memory boundary
+
+The [native bridge](HERMES_INSTALL.md) keeps bounded volatile proposals, one-time
+confirmation challenges, admission fingerprints and last-use receipts. Pending
+requests expire after five minutes or process/session finalization. Persistent
+state is one profile-local ledger, partitioned by hashed transport owner/chat.
+Hashing scopes is not anonymization. No state is seeded from the host.
+
+Native no-save prevents new preference captures; recording a privacy-tightening
+control may itself write an opaque replay fence/session flag. No-recall separately
+blocks injection and does not block owner inspection. Native session flags survive
+restart until an explicit confirmed resume; this differs from core-only in-memory
+no-save. No control can retract context already sent to Hermes or a provider.
+
+All expanding controls and memory changes require a fresh single-use challenge
+because native command metadata lacks forwarded provenance. The token binds the
+exact request, session and policy and is not accepted from a model hook. Ordinary
+admitted messages can propose a write or tighten privacy, never grant consent.
+The host, its admission/auth checks and its real command dispatcher remain trusted;
+a compromised host or OS account can bypass this boundary.
+
+Forget removes the selected lineage and its evidence text; opaque event hashes
+and sequence/policy fences remain to prevent resurrection. The limited native
+inspection view refuses to choose targets beyond its bound; use the paged API.
 
 ## Logging and telemetry
 
