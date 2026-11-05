@@ -1,6 +1,6 @@
 # Compatibility
 
-This document describes the verified code contract for beta `0.1.x`. It is deliberately narrower than what may happen to work in an individual environment.
+This document describes the verified code contract for beta `0.2.x`. It is deliberately narrower than what may happen to work in an individual environment.
 
 ## Runtime baseline
 
@@ -11,7 +11,7 @@ This document describes the verified code contract for beta `0.1.x`. It is delib
 | Model providers | Host-neutral | Core makes no LLM or network call |
 | Languages | RU and EN routing rules | Other locales use the same deterministic API but are not a declared routing-quality target |
 | Packaging | Source tree, editable install, wheel/sdist design | Build tooling is a development extra |
-| Native Windows | Core, CLI, profile loader, memory-off Hermes plugin | Optional SQLite memory ledger is not enabled on Windows in `0.1.x` |
+| Native Windows | Core, CLI, profile loader, memory-off Hermes plugin | Optional SQLite memory ledger is not enabled on Windows in `0.2.x` |
 | Persistent memory | POSIX local filesystem only | Requires `fcntl`, owner/mode semantics, local locking, and atomic replacement |
 
 ## Operating systems
@@ -26,7 +26,7 @@ An intended environment is not automatically a certified platform. Run the full 
 
 Native Windows supports the standard-library core, `humanlike route`, `humanlike eval`, `humanlike doctor`, read-only persona/config/foundation loading, and the wheel-installed Hermes plugin with memory disabled. Windows loaders reject lexical traversal, symlinks, junctions and other reparse points, enforce file bounds, and compare file identity before and after opening.
 
-The optional `SQLiteMemoryLedger` remains unavailable on native Windows in `0.1.x`. It depends on POSIX owner/mode checks, descriptor-relative traversal, `flock`, and directory durability semantics. Enabling `memory_enabled = true` on Windows fails closed instead of silently using weaker storage guarantees.
+The optional `SQLiteMemoryLedger` remains unavailable on native Windows in `0.2.x`. It depends on POSIX owner/mode checks, descriptor-relative traversal, `flock`, and directory durability semantics. Enabling `memory_enabled = true` on Windows fails closed instead of silently using weaker storage guarantees.
 
 WSL2 provides the POSIX interfaces required by the complete stack. Keep memory state on the WSL Linux filesystem rather than a mounted Windows or synchronized directory.
 
@@ -56,7 +56,7 @@ The manifest schema version is `1`, the plugin kind is `standalone`, and the pro
 
 Hermes distributions can change installer commands, payload fields, hook semantics, and transcript behavior independently. Before using another Hermes release:
 
-1. Install the complete repository root as the plugin directory.
+1. Install the reviewed wheel using [Hermes installation](HERMES_INSTALL.md); do not install the complete source tree as a live directory plugin.
 2. Run `humanlike doctor --config examples/hermes-humanlike/humanlike.toml`.
 3. Confirm all four hooks register.
 4. Exercise first turn, sequential turns, cancelled turns, malformed payloads, output transformation, and session finalization in a non-production profile.
@@ -66,6 +66,17 @@ Hermes distributions can change installer commands, payload fields, hook semanti
 Passing `doctor` validates the local profile; it does not prove host-version compatibility.
 
 ## CLI compatibility
+
+### Optional 0.2.0 host API
+
+`PersonalMemory`, `ConversationContext`, `AuthorizedHost` and
+`HermesAdapter.prepare_authorized` are additive Python APIs, not new native Hermes
+hooks or TOML options. The executable synthetic example uses the real library
+runtime/adapter, not a running Hermes gateway. Live host authentication and history
+access must be implemented and verified by the integrator. Existing APIs and the
+stock memory-off plugin remain unchanged. The explicit capture grammar uses English
+command words with Unicode values; conversation cues include English and Russian.
+See [migration and rollback](PERSONAL_MEMORY.md).
 
 All commands write one JSON object to standard output.
 

@@ -6,7 +6,7 @@
 
 [English](#english) · [Русский](#русский) · [Documentation](#documentation) · [License](#license)
 
-> **Status: public beta (`0.1.2`), licensed under MIT.** The API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
+> **Status: public beta (`0.2.0`), licensed under MIT.** The API and configuration schema may change before `1.0`. The core runtime is offline, uses only the Python standard library, and does not call an LLM or the network.
 
 ```mermaid
 flowchart LR
@@ -27,6 +27,7 @@ Humanlike is a behavioral planning layer for AI agents. It classifies each turn,
 - Bounded context plans with mandatory truth and privacy guidance.
 - Persona anchoring, repetition control, calibrated stance, and drift signals.
 - Optional evidence-aware SQLite memory behind explicit host-controlled consent.
+- Opt-in explicit personal-memory capture, correction/forget/revocation controls, and bounded conversation references through an authenticated host API.
 - A 40-case offline conformance suite for routing, privacy, context budgets, policy, disclosure, stance, memory, and drift.
 - A reference Hermes directory plugin with `pre_llm_call`, `transform_llm_output`, `post_llm_call`, and `on_session_finalize` hooks.
 - Stable JSON CLI commands: `route`, `doctor`, and `eval`.
@@ -37,7 +38,7 @@ Humanlike is not a model, chatbot UI, autonomous agent host, network service, or
 
 ### Quickstart
 
-Requirements: Git and Python 3.11 or newer. Linux and macOS support the complete stack. Native Windows supports the core runtime, CLI, hardened read-only profile loading, and the memory-off Hermes plugin. The optional SQLite memory ledger remains POSIX-only in `0.1.x`.
+Requirements: Git and Python 3.11 or newer. Linux and macOS support the complete stack. Native Windows supports the core runtime, CLI, hardened read-only profile loading, read-only conversation references, and the memory-off Hermes plugin. The optional SQLite memory ledger remains POSIX-only in `0.2.x`.
 
 Linux and macOS:
 
@@ -124,6 +125,14 @@ Start a new Hermes session after enabling it. The full source tree contains adve
 
 Memory is disabled by default. Enabling it requires `memory_enabled = true`, `acknowledge_host_context_persistence = true`, and a relative `state_path`. The runtime cannot delete copies already retained by a host or model provider.
 
+Those TOML settings configure the legacy ledger, **not automatic personal capture**.
+For the new consented pipeline, bind `PersonalMemory` and `AuthorizedHost` in trusted
+host code and explicitly call `enable()`. See the [EN/RU integration guide](docs/PERSONAL_MEMORY.md)
+and run `python examples/consented_memory.py` after installation. It demonstrates
+real persistence/reopen/correction/forget and artifact/tool-reference recall using
+only synthetic data. The capture grammar is explicit, not free-form psychological
+inference. Model answer-quality A/B is **NOT_RUN**; no naturalness improvement is claimed.
+
 ### Development
 
 ```bash
@@ -147,6 +156,7 @@ Humanlike — публичная бета-библиотека под лицен
 - Формирует ограниченный план ответа с правилами честности и приватности.
 - Удерживает персону, снижает повторы, отслеживает позицию и поведенческий дрейф.
 - Поддерживает опциональную SQLite-память только с явным согласием основной системы.
+- Даёт управляемый захват явно указанных предпочтений, исправление, забывание и ограниченное восстановление контекста через проверенный host API.
 - Запускает офлайн-проверку из 40 кейсов.
 - Даёт эталонный адаптер для Hermes и JSON CLI-команды `route`, `doctor`, `eval`.
 
@@ -156,7 +166,7 @@ Humanlike — публичная бета-библиотека под лицен
 
 ### Быстрый старт
 
-Нужны Git и Python 3.11 или новее. Linux и macOS поддерживают полный стек. В нативном Windows работают основной runtime, CLI, защищённая загрузка профиля для чтения и Hermes-плагин с выключенной памятью. Опциональная SQLite-память в ветке `0.1.x` остаётся POSIX-only.
+Нужны Git и Python 3.11 или новее. Linux и macOS поддерживают полный стек. В нативном Windows работают основной runtime, CLI, защищённая загрузка профиля, чтение переданного контекста и Hermes-плагин с выключенной памятью. Опциональная SQLite-память в ветке `0.2.x` остаётся POSIX-only.
 
 Linux и macOS:
 
@@ -219,10 +229,19 @@ hermes plugins show humanlike-agent-kit
 
 Память по умолчанию выключена. Для включения нужны `memory_enabled = true`, `acknowledge_host_context_persistence = true` и относительный `state_path`. Это осознанное ограничение: библиотека не управляет копиями данных в основной системе или у провайдера модели.
 
+Эти TOML-настройки включают прежнее хранилище, **не автоматический захват личных фактов**.
+Новый цикл требует `PersonalMemory`, проверенного `AuthorizedHost` и явного `enable()`.
+[Инструкция EN/RU](docs/PERSONAL_MEMORY.md) описывает права, команды и ограничения;
+`python examples/consented_memory.py` проверяет сохранение, повторное открытие,
+исправление, забывание и контекст на синтетических данных. Свободное извлечение
+личности из речи не заявляется. Слепое модельное A/B — **NOT_RUN**; улучшение
+естественности ответов не доказано.
+
 ## Documentation
 
 - [Architecture / Архитектура](docs/ARCHITECTURE.md)
 - [Privacy / Приватность](docs/PRIVACY.md)
+- [Consented memory and conversation context / Память и контекст](docs/PERSONAL_MEMORY.md)
 - [Compatibility / Совместимость](docs/COMPATIBILITY.md)
 - [Hermes installation / Установка в Hermes](docs/HERMES_INSTALL.md)
 - [Threat model / Модель угроз](docs/THREAT_MODEL.md)

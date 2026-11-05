@@ -6,6 +6,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-05
+
+### Added
+
+- Opt-in `PersonalMemory` over the existing SQLite ledger: explicit preferences,
+  goals and interests, host-authorized consent, inspect/correct/forget/disable.
+- Scoped confirms/supersedes/corrects/contradicts relations, source evidence,
+  replay fences and durable policy epochs that reject late saves after revocation.
+- Bounded read-only `ConversationContext` for exact-anchor continuation requests,
+  with artifact references and host-observed past tool outcomes.
+- Programmatic `HermesAdapter.prepare_authorized` host bridge, synthetic executable
+  lifecycle example, adversarial/concurrency/migration tests and EN/RU documentation.
+
+### Boundaries
+
+- Existing APIs, stock plugin defaults and zero mandatory dependencies remain.
+  Automatic capture is not activated by TOML or hook payload flags.
+- Memory remains POSIX-only. Explicit capture uses a documented command grammar;
+  free-form conversational extraction and LLM answer-quality improvement are not claimed.
+- Model A/B: NOT_RUN. Offline functional comparisons are not human-quality scores.
+
 ## [0.1.2] - 2026-09-04
 
 ### Added

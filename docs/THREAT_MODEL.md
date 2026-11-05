@@ -1,8 +1,22 @@
 # Threat Model
 
-This threat model covers Humanlike beta `0.1.x`: the provider-neutral core, local profiles and creative packs, optional SQLite memory, offline conformance runner, and reference Hermes adapter.
+This threat model covers Humanlike beta `0.2.x`: the provider-neutral core, local profiles and creative packs, optional SQLite memory, offline conformance runner, and reference Hermes adapter.
 
 ## Security goals
+
+The opt-in [personal-memory/context extension](PERSONAL_MEMORY.md) adds a trusted
+host event resolver and action ACL, exact explicit-command validation, durable
+event reservations, policy epochs and scoped relation metadata. The existing ledger
+owns atom storage and locking. Host callbacks, monotonic sequence allocation and
+genuine tool receipts are trusted inputs, not facts derived from `role=user` or
+model text. Compromised host code remains out of scope.
+
+Adversarial tests cover no-save before dispatch, metadata changes before commit,
+forget/disable from a second ledger instance, replay after reopening, stale source
+updates, condition separation, forged hook fields and bounded history failures.
+References remain untrusted model input; JSON framing is not an injection firewall.
+Direct low-level ledger mutation and restoring old backups bypass the new revocation
+contract. Never restore pre-forget state to perform a rollback.
 
 1. Do not turn raw conversation text into runtime-owned durable state without explicit consent and validated host records.
 2. Keep context and internal metadata bounded.

@@ -67,6 +67,7 @@ jobs:
           .wheel-smoke/bin/humanlike route --locale en --text "Rewrite this paragraph in a neutral tone."
           .wheel-smoke/bin/humanlike eval
           .wheel-smoke/bin/humanlike doctor --config examples/hermes-humanlike/humanlike.toml
+          .wheel-smoke/bin/python -I examples/consented_memory.py
 
       - name: Smoke-test the installed wheel on Windows
         if: runner.os == 'Windows'
@@ -77,3 +78,4 @@ jobs:
           .\.wheel-smoke\Scripts\humanlike.exe route --locale en --text "Rewrite this paragraph in a neutral tone."
           .\.wheel-smoke\Scripts\humanlike.exe eval
           .\.wheel-smoke\Scripts\humanlike.exe doctor --config examples\hermes-humanlike\humanlike.toml
+          .\.wheel-smoke\Scripts\python.exe -I examples\consented_memory.py
