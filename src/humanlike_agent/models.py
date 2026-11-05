@@ -11,6 +11,7 @@ from typing import Any
 class Mode(StrEnum):
     """Primary cognitive mode selected for a turn."""
 
+    UNKNOWN = "unknown"
     SOCIAL = "social"
     SUPPORT = "support"
     TASK = "task"
@@ -25,6 +26,7 @@ class Mode(StrEnum):
 class SocialMove(StrEnum):
     """Social action the response should perform."""
 
+    NEUTRAL = "neutral"
     CONNECT = "connect"
     ACKNOWLEDGE = "acknowledge"
     LISTEN = "listen"
@@ -91,7 +93,7 @@ class RouteDecision(_JsonSafeContract):
 
     mode: Mode = Mode.TASK
     social_move: SocialMove = SocialMove.ANSWER
-    response_budget: int = 400
+    response_budget: int | None = 400
     candidate_count: int = 1
     constraints: tuple[str, ...] = ()
     reason_codes: tuple[str, ...] = ()

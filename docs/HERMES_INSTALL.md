@@ -1,8 +1,11 @@
-# Installing Humanlike in Hermes (0.3.1)
+# Installing Humanlike in Hermes (0.4.0)
 
 [English](#english) · [Русский](#русский)
 
 ## English
+
+See [0.4.0 stability contracts / EN+RU](STABILITY.md) for neutral routing, exact
+conflict replacement, safe diagnostic states and compatible-reader rollback.
 
 ### Install without changing Hermes' Python environment
 
@@ -74,6 +77,7 @@ controls, but **not automatic admitted-message memory/continuity injection**.
 | Preference paraphrase | `Remember: I prefer short replies` | `Запомни: я предпочитаю короткие ответы` |
 | Optional politeness | `Please, usually keep replies short` | `Пожалуйста, обычно отвечай кратко` |
 | Next inspection page | `Next memory page` | `Следующая страница памяти` |
+| Short learning | `Keep learning replies short` | `Объясняй учебные темы кратко` |
 | Detailed learning | `Explain learning topics in detail` | `Объясняй учебные темы подробно` |
 | Inspect | `What do you remember?` | `Что ты помнишь?` |
 | Why used | `Why did you use that?` | `Почему ты это использовал?` |
@@ -123,14 +127,15 @@ The resolver includes actual host tool rows, never treats an assistant's claim a
 a completed tool action, and does not rewrite history or crawl archives.
 
 Inspection shows stored versions, domain, condition, source reference and relation.
-Why-use reports what was offered as context, not proof that the model followed it.
+Why-use reports what was prepared for the hook, not provider receipt or model compliance.
 Since 0.3.1, inspection returns up to five versions plus `has_more`. Send
 `/humanlike next memory page` while it is true; repeat the initial inspect request
 to start over. Cursors expire after five minutes, a changed policy/history, session
 finalization or restart; `[page_expired]` asks you to inspect again. Active markers
 include replacements on later pages. Inspection does not imply recall consent.
 Correction and forget select from complete bounded scopes, **never the visible page**.
-Ambiguous corrections ask for clarification. Scoped forget removes the entire
+Explicit correction replaces every active value in the exact selected scope; see
+[conflict choices and diagnostic states](STABILITY.md). Scoped forget removes the entire
 key/domain/condition lineage, including conflicting values, not just one version.
 The existing limit of 256 versions per scope remains: `[group_full]` refuses a new
 version; inspection and explicit scoped forget still work. No schema change.
@@ -240,7 +245,7 @@ SQLite находится в `plugin-data/humanlike/memory.sqlite` внутри 
 не шифруется и начинается пустой. Чаты и владельцы изолированы. «Забудь» удаляет
 цепочку версий выбранного предпочтения из Humanlike; метки защиты от повторов
 остаются. Переписка Hermes, копии провайдера и резервные копии не удаляются.
-«Отключи память» сохраняет записи для просмотра и удаления. Начиная с 0.3.1,
+«Отключи память» сохраняет записи для просмотра и удаления. Начиная с 0.4.0,
 просмотр выдаёт до пяти версий и `has_more`. Пока он равен `true`, отправляйте
 `/humanlike следующая страница памяти`. Первый запрос просмотра начинает его заново.
 Через пять минут, после изменения памяти, завершения сессии или перезапуска

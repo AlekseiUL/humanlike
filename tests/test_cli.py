@@ -177,7 +177,7 @@ def test_eval_uses_the_bundled_cases_directory_by_default(capsys: object) -> Non
 
     assert status == 0
     assert payload["schema"] == "humanlike-conformance-report/v1"
-    assert payload["summary"] == {"failed": 0, "passed": 40, "total": 40}
+    assert payload["summary"] == {"failed": 0, "passed": 44, "total": 44}
 
 
 def test_doctor_json_is_ascii_safe_for_unicode_profile(tmp_path: Path) -> None:

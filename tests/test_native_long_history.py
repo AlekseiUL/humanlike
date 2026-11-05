@@ -123,8 +123,8 @@ def test_large_two_scope_history_and_other_owners_survive_forget(tmp_path):
 
 def test_scoped_forget_erases_contradictory_lineage_only(tmp_path):
     c, s = seeded(tmp_path, 51)
-    assert "[stored]" in c.handle("Usually give detailed replies", s)
-    assert "[clarify]" in c.handle("Correct that: usually give detailed replies", s)
+    assert "[conflict_choice]" in c.handle("Usually give detailed replies", s)
+    assert "[stored]" in c.handle("Correct that: usually give detailed replies", s)
     assert "[stored]" in c.handle("Explain learning topics in detail", s)
     assert "[forgotten]" in c.handle("Forget general reply length", s)
     assert not c._memory(s).recall("reply_length")

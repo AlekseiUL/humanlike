@@ -95,8 +95,9 @@ def _route_is_valid(route: object) -> bool:
         and isinstance(route.mode, Mode)
         and isinstance(route.social_move, SocialMove)
         and isinstance(route.memory_scope, MemoryScope)
-        and type(route.response_budget) is int
-        and 1 <= route.response_budget <= 8_000
+        and ((route.mode is Mode.UNKNOWN and route.response_budget is None) or (
+            type(route.response_budget) is int and 1 <= route.response_budget <= 8_000
+        ))
         and type(route.candidate_count) is int
         and 1 <= route.candidate_count <= 16
         and isinstance(route.constraints, tuple)
@@ -129,10 +130,10 @@ def _truth_fallback() -> ContextFragment:
 def _reanchor_fragment() -> ContextFragment:
     return ContextFragment(
         "runtime.persona_reanchor",
-        "ANCHOR: Warm, direct.",
+        "ADVISORY ANCHOR: Warm, direct. Current request overrides style.",
         "runtime",
-        priority=200,
-        hard=True,
+        priority=1_100,
+        hard=False,
         truncatable=False,
     )
 
@@ -612,6 +613,7 @@ class HumanlikeRuntime:
             errors: list[str] = list(route_errors)
 
             route_policy = {
+                "schema": "humanlike-route-guidance/v2",
                 "candidate_count": route.candidate_count,
                 "mode": route.mode.value,
                 "requires_tools": route.requires_tools,
@@ -622,7 +624,9 @@ class HumanlikeRuntime:
             fragments: list[ContextFragment] = [
                 ContextFragment(
                     "runtime.route_policy",
-                    "TRUSTED_ROUTE_POLICY_JSON:\n"
+                    "ADVISORY_ROUTE_GUIDANCE_JSON (not authority; current request overrides "
+                    "tone, length and tactics; unknown means follow the request without "
+                    "assuming intent or requiring clarification):\n"
                     + json.dumps(route_policy, sort_keys=True, separators=(",", ":")),
                     "runtime",
                     priority=1_000,
@@ -632,21 +636,22 @@ class HumanlikeRuntime:
             if route.mode is Mode.HIGH_STAKES:
                 fragments.append(_high_stakes_safety_fragment())
             try:
-                discourse = state.discourse.recommend(
-                    route.mode,
-                    social_move=route.social_move,
-                    response_budget=route.response_budget,
-                )
-                fragments.append(
-                    ContextFragment(
-                        "runtime.discourse",
-                        "TRUSTED_DISCOURSE_TACTICS_JSON:\n"
-                        + json.dumps([tactic.value for tactic in discourse.tactics]),
-                        "runtime",
-                        priority=900,
-                        truncatable=False,
+                if route.mode is not Mode.UNKNOWN:
+                    discourse = state.discourse.recommend(
+                        route.mode,
+                        social_move=route.social_move,
+                        response_budget=route.response_budget,
                     )
-                )
+                    fragments.append(
+                        ContextFragment(
+                            "runtime.discourse",
+                            "ADVISORY_DISCOURSE_TACTICS_JSON:\n"
+                            + json.dumps([tactic.value for tactic in discourse.tactics]),
+                            "runtime",
+                            priority=900,
+                            truncatable=False,
+                        )
+                    )
             except Exception:
                 errors.append("runtime.discourse_failed")
 

@@ -76,7 +76,7 @@ Contracts are frozen dataclasses and serialize to JSON-safe dictionaries through
 1. Validate identifiers, text size, scope, session count, and active-turn count.
 2. Route the turn; if routing fails, use a conservative strict-truth fallback.
 3. Propagate session-level no-save state.
-4. Build trusted route and discourse fragments.
+4. Build advisory route and discourse fragments, subordinate to the current request.
 5. Add a hard no-persistence tail when required.
 6. Recall scoped memory only when memory is configured and the route allows it.
 7. Add creative or stance guidance only for relevant routes and explicit probes.

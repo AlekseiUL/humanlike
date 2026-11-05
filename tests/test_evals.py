@@ -19,17 +19,17 @@ def test_evals_module_imports() -> None:
     assert importlib.import_module("humanlike_agent.evals")
 
 
-def test_official_suite_loads_exactly_twenty_cases_per_locale() -> None:
+def test_official_suite_loads_exactly_twenty_two_cases_per_locale() -> None:
     from humanlike_agent.evals import load_cases
 
     cases_dir = Path(__file__).parents[1] / "evals" / "cases"
 
     cases = load_cases(cases_dir, allowed_root=cases_dir)
 
-    assert len(cases) == 40
-    assert sum(case.locale == "ru" for case in cases) == 20
-    assert sum(case.locale == "en" for case in cases) == 20
-    assert len({case.case_id for case in cases}) == 40
+    assert len(cases) == 44
+    assert sum(case.locale == "ru" for case in cases) == 22
+    assert sum(case.locale == "en" for case in cases) == 22
+    assert len({case.case_id for case in cases}) == 44
     assert max(len(case.steps) for case in cases) == 3
 
 
@@ -42,8 +42,8 @@ def test_official_suite_passes_all_dimensions_offline() -> None:
 
     assert report["schema"] == "humanlike-conformance-report/v1"
     assert [dimension["id"] for dimension in report["dimensions"]] == list(DIMENSION_ORDER)
-    assert report["summary"] == {"failed": 0, "passed": 40, "total": 40}
-    assert len(report["cases"]) == 40
+    assert report["summary"] == {"failed": 0, "passed": 44, "total": 44}
+    assert len(report["cases"]) == 44
     assert all(case["passed"] and case["failure_codes"] == [] for case in report["cases"])
     assert all(dimension["passed"] for dimension in report["dimensions"])
     assert all(dimension["case_count"] >= 1 for dimension in report["dimensions"])
@@ -240,7 +240,7 @@ def test_runner_catches_contract_mismatches(
     report = run_conformance(cases_dir, allowed_root=cases_dir)
 
     failed = [case for case in report["cases"] if not case["passed"]]
-    assert report["summary"] == {"failed": 1, "passed": 39, "total": 40}
+    assert report["summary"] == {"failed": 1, "passed": 43, "total": 44}
     assert failed == [{"failure_codes": [failure_code], "id": case_id, "passed": False}]
 
 
@@ -257,7 +257,7 @@ def test_eval_cli_emits_the_official_report_and_zero_exit(capsys: object) -> Non
     assert captured.out.count("\n") == 1
     payload = json.loads(captured.out)
     assert payload["schema"] == "humanlike-conformance-report/v1"
-    assert payload["summary"] == {"failed": 0, "passed": 40, "total": 40}
+    assert payload["summary"] == {"failed": 0, "passed": 44, "total": 44}
 
 
 def test_eval_cli_uses_the_packaged_official_suite_by_default(capsys: object) -> None:
@@ -270,7 +270,7 @@ def test_eval_cli_uses_the_packaged_official_suite_by_default(capsys: object) ->
     assert captured.err == ""
     payload = json.loads(captured.out)
     assert payload["schema"] == "humanlike-conformance-report/v1"
-    assert payload["summary"] == {"failed": 0, "passed": 40, "total": 40}
+    assert payload["summary"] == {"failed": 0, "passed": 44, "total": 44}
 
 
 def test_report_is_byte_stable_and_contains_no_fixture_payloads(tmp_path: Path) -> None:
@@ -313,7 +313,7 @@ def test_eval_cli_uses_exit_one_for_valid_mismatches(tmp_path: Path, capsys: obj
     payload = json.loads(capsys.readouterr().out)
 
     assert status == 1
-    assert payload["summary"] == {"failed": 1, "passed": 39, "total": 40}
+    assert payload["summary"] == {"failed": 1, "passed": 43, "total": 44}
 
 
 def test_eval_cli_uses_exit_two_for_invalid_suite_without_echo(

@@ -26,7 +26,10 @@ contract. Never restore pre-forget state to perform a rollback.
 6. Fail neutral at the Hermes hook boundary without leaking rejected payloads or exception details.
 7. Run core behavior and conformance checks without model or network access.
 
-## Native 0.3.1 memory boundary
+## Native 0.4.0 memory boundary
+
+See [0.4.0 stability contracts / EN+RU](STABILITY.md) for neutral routing, exact
+conflict replacement, safe diagnostic states and compatible-reader rollback.
 
 The [native bridge](HERMES_INSTALL.md) keeps bounded volatile proposals, one-time
 confirmation challenges, admission fingerprints and last-use receipts. Pending
@@ -113,7 +116,7 @@ Session-level no-save remains the strictest scope until `finalize()`. A later sa
 
 ### A host passes message text as a memory record
 
-The core validates record shape and write conditions, but it cannot determine whether a scalar value is an over-broad transcript excerpt. The host is trusted to apply data minimization before supplying records. The core behavior adapter supplies no records. The native 0.3.1 control bridge
+The core validates record shape and write conditions, but it cannot determine whether a scalar value is an over-broad transcript excerpt. The host is trusted to apply data minimization before supplying records. The core behavior adapter supplies no records. The native 0.4.0 control bridge
 accepts only its closed reply-length vocabulary after human confirmation.
 
 ### A profile points outside its directory

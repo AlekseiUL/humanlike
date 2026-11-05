@@ -54,6 +54,10 @@ PREFERENCES = {
         "я предпочитаю подробные ответы",
         "обычно отвечай подробно",
     ),
+    ("short", "learning"): (
+        "keep learning replies short",
+        "объясняй учебные темы кратко",
+    ),
     ("detailed", "learning"): (
         "explain learning topics in detail",
         "объясняй учебные темы подробно",

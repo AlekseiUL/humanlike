@@ -143,7 +143,11 @@ def main():
     assert "[resume]" in approved("Resume this session")
     assert "[stored]" in approved("Explain learning topics in detail")
     assert "[clarify]" in approved("Forget that")
+    assert "[conflict_choice]" in approved("Usually give detailed replies")
     assert "[stored]" in approved("Correct that: usually give detailed replies")
+    admitted("Explain this in detail now")
+    assert '"value": "detailed"' in str(pre("Explain this in detail now"))
+    assert "prepared:not_provider_receipt" in command("status")
     first = command("What do you remember?")
     assert not any(r["active"] for r in json.loads(first[first.index("{") :])["records"])
     assert "[forgotten]" in approved("Forget general reply length")
@@ -157,7 +161,9 @@ def main():
     )
     assert "[denied]" in command("What do you remember?", foreign)
     assert "[empty]" in command("What do you remember?", foreign, "other-session")
-    assert "[no_save]" in command("Do not save this session")
+    mixed = admitted("Build a CSV parser. Do not save this session.")
+    assert "handled" not in str(mixed), mixed
+    assert "no_save=True" in command("status")
     assert "[disabled]" in command("Pause memory")
     # Exercise a fresh controller/dispatch registry, not the old handler again.
     manager = PluginManager()
